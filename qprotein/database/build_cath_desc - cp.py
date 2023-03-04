@@ -41,10 +41,9 @@ class SqlBuilder(object):
         return cursor
 
     def pack_records(self, desc_content):
-        logger.info("Step 3 -> Pack records for SQL batch inserting")
         # TODO: overwrite in subclass
         # Different object has different data structure.
-
+        logger.info("Step 3 -> Pack records for SQL batch inserting")
         record_items = {}
         prefixes = ["DOMAIN", "CATHCODE", "CLASS", "ARCH", "TOPOL", "HOMOL"]
         reg = re.compile(r"  +")
