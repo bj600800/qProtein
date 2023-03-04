@@ -73,17 +73,11 @@ class Extractor:
         return plddt
 
     def sum_all(self):
-        """
-        Summary the overall parameters, put the results at first position.
-        :return: self.info
-        """
-        # Total predicted structure files
         self.info = {
             'Sequence length': self.get_len(),
             'pLDDT from local': self.extract_plddt(),
         }
 
-        # Dict to DataFrame, and write to csv.
         df = pd.DataFrame.from_dict(self.info)
         csv_path = os.path.join(self.output_dir, 'results', 'data.csv')
         df.to_csv(csv_path, sep=',')

@@ -12,43 +12,50 @@ from qprotein.utilities import log
 
 logger = log.setup_log(name='sql_Builder')
 
+
 class SqlBuilder(object):
 
     def __init__(self, desc_file, sql_db, table_name, column_definition):
         self.desc_file = desc_file
-
         self.sql_db = sql_db
         self.table_name = table_name
         self.column_definition = column_definition
 
-        self.build_sqlite()
+        self.main()
+
+    def read_desc_file(self):
+        logger.info(f"Step 1 -> Read source file: {self.desc_file}.")
+
+        with open(self.desc_file, 'r') as f:
+            desc_content = [line for line in f.readlines() if not line.startswith('#')]
+        return desc_content
 
     def create_cath_sql(self):
+        logger.info(f"Step 2 -> Create SQL table: {self.table_name}.")
+
         connect = sqlite3.connect(self.sql_db)
         cursor = connect.cursor()
         cursor.execute(f"DROP TABLE IF EXISTS {self.table_name}")
-        cursor.execute(f"CREATE TABLE {self.table_name} ({self.column_definition})")
+        definition_str = ','.join([' '.join(i) for i in self.column_definition.items()])
+        cursor.execute(f"CREATE TABLE {self.table_name} ({definition_str})")
+
         return cursor
 
-    def read_desc_file(self):
-        with open(self.desc_file, 'r') as f:
-            desc = [line for line in f.readlines() if not line.startswith('#')]
-        return desc
+    def insert_data(self, desc_content, cursor):
+        logger.info(f"Step 3 -> Insert data to SQL table: {self.table_name}")
 
-    def build_sqlite(self):
-        cursor = self.create_cath_sql()
         records = []
         record_counter = 0
         column_items = {}
         reg = re.compile(r"  +")
         prefixes = ["DOMAIN", "CATHCODE", "CLASS", "ARCH", "TOPOL", "HOMOL"]
 
-        for line in self.read_desc_file():
+        for line in desc_content:
             if record_counter == 50000:
-                print('Insert 50000 items.')
                 cursor.execute("begin")
                 cursor.executemany(f"INSERT INTO {self.table_name} VALUES(?, ?, ?, ?, ?, ?)", records)
                 cursor.execute("commit")
+                logger.info(f"Insert 50000 items.")
                 records = []
                 record_counter = 0
                 records.append(tuple(column_items.values()))
@@ -62,24 +69,30 @@ class SqlBuilder(object):
                     record_counter += 1
 
         if record_counter > 0:
-            print(records)
-            print('Procession remaining records.')
+            logger.info("Step 4 -> Insert the remaining records.")
             cursor.execute("begin")
             cursor.executemany(f"INSERT INTO {self.table_name} VALUES(?, ?, ?, ?, ?, ?)", records)
             cursor.execute("commit")
-        print(f'Creating index for {self.table_name}.')
-        cursor.execute(f"CREATE INDEX cath_desc_idx ON cath_desc (domain_name, cath_code, cath_class,"
-                       "cath_architecture, cath_topology, cath_homologous)"
-                       )
 
-        print(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
-        print('Finished sql_db building for cath_desc.')
+        logger.info(f'Step 5 -> Creating index for SQL table: {self.table_name}.')
+
+        column_name = ', '.join(self.column_definition.keys())
+        cursor.execute(f"CREATE INDEX cath_desc_idx ON cath_desc ({column_name})")
+
+        logger.info(f'Successfully build SQL database for {table_name}')
+
+    def main(self):
+        desc_content = self.read_desc_file()
+        cursor = self.create_cath_sql()
+        self.insert_data(desc_content, cursor)
 
 
 if __name__ == '__main__':
     desc_file = r'G:\DB\cath\cath-classification-data_txt\cath-domain-description-file.txt'
     sql_db = r'G:\DB\cath\cath-classification-data_txt\cath.db'
     table_name = 'cath_desc'
-    column_definition = 'domain_name TEXT, cath_code TEXT, cath_class TEXT,' \
-                        'cath_architecture TEXT, cath_topology TEXT, cath_homologous TEXT'
+    column_definition = {"domain_name": "TEXT", "cath_code": "TEXT",
+                         "cath_class": "TEXT", "cath_architecture": "TEXT",
+                         "cath_topology": "TEXT", "cath_homologous": "TEXT"
+                         }
     cath_builder = SqlBuilder(desc_file, sql_db, table_name, column_definition)

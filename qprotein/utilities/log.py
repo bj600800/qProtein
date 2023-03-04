@@ -12,11 +12,11 @@ import logging
 
 
 class LevelFilter:
-    def __init__(self, level):
-        self.__level = level
+    def __init__(self, handler_level):
+        self.handler_level = handler_level
 
     def filter(self, record):
-        return record.levelno <= self.__level
+        return record.levelno <= self.handler_level
 
 
 def setup_log(name):

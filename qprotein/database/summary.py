@@ -99,9 +99,7 @@ def parse_merops(merops_output, sql_db):
             records = []
 
         # For the N+1 item, appending to list as well.
-        _dict = {}
-        _dict['acc_id'] = i[0]
-        _dict['merops70_family'] = i[1].split('#')[1]
+        _dict = {'acc_id': i[0], 'merops70_family': i[1].split('#')[1]}
         records.append(tuple([_dict['acc_id'], _dict['merops70_family']]))
         record_counter += 1
 
