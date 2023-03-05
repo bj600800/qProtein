@@ -6,7 +6,7 @@ parse uniprot dat file to sqlite3
 """
 import gzip
 import sqlite3
-import time
+
 
 
 def parse_uniprot_dat(dat_file, sql_db, table_name):
@@ -107,15 +107,9 @@ def parse_uniprot_dat(dat_file, sql_db, table_name):
 
 
 def main():
-    # # create uniprot_sprot dat db
-    # sprot_dat = r'G:\DB\uniprot_sprot.dat.gz'
-    # sprot_sql_db = r'G:\DB\uniprot_sprot.db'
-    # parse_uniprot_dat(sprot_dat, sprot_sql_db, 'uniprot_sprot')
-
-    # create uniprot_trembl dat db
-    trembl_dat = r'G:\DB\uniprot_trembl.dat.gz'
-    trembl_sql_db = r'G:\DB\uniprot_trembl.db'
-    parse_uniprot_dat(trembl_dat, trembl_sql_db, 'uniprot_trembl')
-
+    # create uniprot_sprot dat db
+    sprot_dat = r'G:\DB\uniprot_sprot.dat.gz'
+    sprot_sql_db = r'G:\DB\uniprot_sprot.db'
+    parse_uniprot_dat(sprot_dat, sprot_sql_db, 'uniprot_sprot')
 
 main()

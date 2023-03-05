@@ -21,12 +21,25 @@ class LevelFilter:
 
 def setup_log(name):
     # define format for handlers
+    debug_format = '%(asctime)s [%(levelname)s]' \
+                     ' - FileName: %(filename)s' \
+                     ' - FuncName: %(funcName)s' \
+                     ' - Line number: %(lineno)d' \
+                     ' - [%(message)s]'
+
     info_format = '%(asctime)s [%(levelname)s]: %(message)s'
+
     warning_format = '%(asctime)s [%(levelname)s]' \
                      ' - FileName: %(filename)s' \
                      ' - FuncName: %(funcName)s' \
                      ' - Line number: %(lineno)d' \
                      ' - [%(message)s]'
+
+    # define handler for debug level
+    debug_handler = logging.StreamHandler()
+    debug_handler.setLevel(logging.DEBUG)
+    debug_handler.setFormatter(logging.Formatter(debug_format))
+    debug_handler.addFilter(LevelFilter(logging.DEBUG))
 
     # define handler for info level
     info_handler = logging.StreamHandler()
@@ -47,18 +60,10 @@ def setup_log(name):
 
     # initiation logger
     logger = logging.getLogger(name)
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(debug_handler)
     logger.addHandler(info_handler)
     logger.addHandler(warning_handler)
     logger.addHandler(error_handler)
 
     return logger
-
-
-if __name__ == '__main__':
-    def hello():
-        logger = setup_log('__name__')
-        logger.critical('I will download and format the databases I use.')
-
-
-    hello()
