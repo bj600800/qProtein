@@ -6,6 +6,7 @@ Base class for SQL builder class
 """
 from abc import abstractmethod
 import sqlite3
+import gzip
 
 
 class SqlBuilder(object):
@@ -16,12 +17,17 @@ class SqlBuilder(object):
         self.column_definition = column_definition
         self.records = []
 
-    @abstractmethod
-    def read_file(self):
-        """
-        This is an abstract method that needs to be implemented in the subclass.
-        """
-        raise NotImplementedError("The read method must be implemented by a subclass")
+    @staticmethod
+    def read_text_generator(filename):
+        with open(filename, 'r') as f:
+            for line in f:
+                yield line
+
+    @staticmethod
+    def read_gz_generator(file):
+        with gzip.open(file, 'rt') as uniprot_dat:
+            for line in uniprot_dat:
+                yield line
 
     def create_cath_sql(self):
         connect = sqlite3.connect(self.sql_db)
@@ -31,21 +37,15 @@ class SqlBuilder(object):
         cursor.execute(f"CREATE TABLE {self.table_name} ({definition_str})")
         return cursor
 
-    @abstractmethod
-    def pack_records(self, desc_content):
-        """
-        This is an abstract method that needs to be implemented in the subclass.
-        """
-        raise NotImplementedError("The read method must be implemented by a subclass")
-
-    def insert_batch(self, cursor, records: list):
+    def insert_batch(self, cursor, records: list, values_num):
         cursor.execute("begin")
-        cursor.executemany(f"INSERT INTO {self.table_name} VALUES(?, ?, ?, ?, ?, ?)", records)
+        question_mark = ', '.join(['?'] * values_num)
+        cursor.executemany(f"INSERT INTO {self.table_name} VALUES({question_mark})", records)
         cursor.execute("commit")
 
     def create_index(self, cursor):
         column_name = ', '.join(self.column_definition.keys())
-        cursor.execute(f"CREATE INDEX cath_desc_idx ON cath_desc ({column_name})")
+        cursor.execute(f"CREATE INDEX {self.table_name}_idx ON {self.table_name} ({column_name})")
 
     @abstractmethod
     def run(self):
