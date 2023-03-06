@@ -42,8 +42,8 @@ class CathSql(SqlBuilder):
 
     def parse_desc(self, cursor):
         for line in self.read_text_generator(self.file):
-            if self.record_counter == 50000:
-                logger.info(f"Insert 50000 records into {table_name}, total records:" + str(self.total_records))
+            if self.record_counter == 500000:
+                logger.info(f"Insert 500000 records into {table_name}, total records:" + str(self.total_records))
                 self.insert_many(cursor, self.records, 6)
                 self.records = []
                 self.record_counter = 0
@@ -72,7 +72,7 @@ class CathSql(SqlBuilder):
 
 if __name__ == '__main__':
     desc_file = r'G:\DB\cath\cath-classification-data_txt\cath-domain-description-file.txt'
-    sql_db = r'C:\Users\bj600\Desktop\cath.db'
+    sql_db = r'C:\Users\bj600\Desktop\qprotein_db.db'
     table_name = 'cath_desc'
     column_definition = {"domain_name": "TEXT", "cath_code": "TEXT",
                          "cath_class": "TEXT", "cath_architecture": "TEXT",
