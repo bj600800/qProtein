@@ -18,33 +18,49 @@ class CathSql(SqlBuilder):
         super(CathSql, self).__init__(sql_db, table_name, column_definition)
 
         self.file = desc_file
-        self.records = []
 
-    def parse_desc(self):
-        record_items = {}
+        self.record_items = {}
+        self.records = []
+        self.record_counter = 0
+        self.total_records = 0
+
+    def format_records(self, line):
         prefixes = ["DOMAIN", "CATHCODE", "CLASS", "ARCH", "TOPOL", "HOMOL"]
         reg = re.compile(r"  +")
+        for prefix in prefixes:
+            if line.startswith(prefix):
+                self.record_items[prefix] = reg.split(line)[1].rstrip()
 
+        if line.startswith("//\n"):
+            self.records.append(tuple(self.record_items.values()))
+            self.record_counter += 1
+            self.total_records += 1
+
+    def parse_desc(self, cursor):
         for line in self.read_text_generator(self.file):
-            for prefix in prefixes:
-                if line.startswith(prefix):
-                    record_items[prefix] = reg.split(line)[1].rstrip()
-            if line.startswith("//\n"):
-                self.records.append(tuple(record_items.values()))
+            if self.record_counter == 50000:
+                logger.info(f"Insert 50000 records into {table_name}, total records:" + str(self.total_records))
+                self.insert_many(cursor, self.records, 6)
+                self.records = []
+                self.record_counter = 0
+
+            else:
+                self.format_records(line)
+
+        if self.record_counter > 0:
+            logger.info(f"Insert {self.record_counter} records into {table_name}")
+            self.insert_many(cursor, self.records, 6)
 
     def run(self):
         logger.info(f"Start to create SQL table: {table_name} in SQL file {sql_db}")
 
-        logger.info(f"Step 1 -> Create SQL table: {table_name}")
-        cursor = self.create_cath_sql()
+        logger.info(f"Create SQL table: {table_name}")
+        cursor = self.create_table()
 
-        logger.info("Step 2 -> Format records for SQL batch inserting")
-        self.parse_desc()
+        logger.info(f"Parse CATH desc file and insert records into {table_name}")
+        self.parse_desc(cursor)
 
-        logger.info(f"Step 3 -> Insert data in bulk to SQL table: {table_name}")
-        self.insert_batch(cursor, self.records, 6)
-
-        logger.info(f'Step 4 -> Creating index for SQL table: {table_name}')
+        logger.info(f'Creating index for SQL table: {table_name}')
         self.create_index(cursor)
 
         logger.info(f'Successfully built SQL database for {table_name}')

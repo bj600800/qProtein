@@ -15,8 +15,9 @@ class SqlBuilder(object):
         self.sql_db = sql_db
         self.table_name = table_name
         self.column_definition = column_definition
-        self.records = []
 
+        self.records = []
+        self.record_counter = 0
     @staticmethod
     def read_text_generator(filename):
         with open(filename, 'r') as f:
@@ -29,7 +30,7 @@ class SqlBuilder(object):
             for line in uniprot_dat:
                 yield line
 
-    def create_cath_sql(self):
+    def create_table(self):
         connect = sqlite3.connect(self.sql_db)
         cursor = connect.cursor()
         cursor.execute(f"DROP TABLE IF EXISTS {self.table_name}")
@@ -37,7 +38,7 @@ class SqlBuilder(object):
         cursor.execute(f"CREATE TABLE {self.table_name} ({definition_str})")
         return cursor
 
-    def insert_batch(self, cursor, records: list, values_num):
+    def insert_many(self, cursor, records: list, values_num):
         cursor.execute("begin")
         question_mark = ', '.join(['?'] * values_num)
         cursor.executemany(f"INSERT INTO {self.table_name} VALUES({question_mark})", records)

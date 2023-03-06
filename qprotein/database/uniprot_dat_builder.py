@@ -26,7 +26,8 @@ class UniprotSql(SqlBuilder):
         self.pfam = []
 
         self.records = []
-
+        self.record_counter = 0
+        self.total_records = 0
     def parse_accession(self, line):
         return line.split()[1].replace(';', '')
 
@@ -103,23 +104,37 @@ class UniprotSql(SqlBuilder):
 
         elif line.startswith("//\n"):
             self.parse_end_mark()
+            self.record_counter += 1
+            self.total_records += 1
 
-    def parse_dat(self):
+    def parse_dat(self, cursor):
+        # TODO: due to the relevance between format_records, the method not in abstract class.
         for line in self.read_gz_generator(self.dat_file):
-            self.format_records(line)
+            if self.record_counter == 500000:
+                logger.info(f"Insert 500000 records into {table_name}, total records:" + str(self.total_records))
+                self.insert_many(cursor, self.records, 8)
+                self.records = []
+                self.record_counter = 0
+
+            else:
+                self.format_records(line)
+
+        # Insert the remaining records
+        if self.record_counter > 0:
+            logger.info(f"Insert {self.record_counter} records into {table_name}")
+            self.insert_many(cursor, self.records, 8)
+
+        logger.info(f"Total records:" + str(self.total_records))
 
     def run(self):
         logger.info(f"Start to create SQL table: {table_name} in SQL file {sql_db}")
-        logger.info(f"Step 1 -> Create SQL table: {table_name}")
-        cursor = self.create_cath_sql()
+        logger.info(f"Create SQL table: {table_name}")
+        cursor = self.create_table()
 
-        logger.info("Step 2 -> Format records for SQL batch inserting")
-        self.parse_dat()
+        logger.info(f"Parse uniprot dat file and insert records into {table_name}")
+        self.parse_dat(cursor)
 
-        logger.info(f"Step 3 -> Batch insert data into SQL table: {table_name}")
-        self.insert_batch(cursor, self.records, 8)
-
-        logger.info(f'Step 4 -> Creating index for SQL table: {table_name}')
+        logger.info(f'Create index for SQL table: {table_name}')
         self.create_index(cursor)
 
         logger.info(f'Successfully built SQL database for {table_name}')
