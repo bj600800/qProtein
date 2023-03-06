@@ -22,6 +22,7 @@ class SqlBuilder(object):
 
         self.records = []
         self.record_counter = 0
+
     @staticmethod
     def read_text_generator(filename):
         with open(filename, 'r') as f:

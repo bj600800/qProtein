@@ -1,14 +1,13 @@
-#!/usr/bin/env python
-# -*- coding:utf-8 -*-
-# @Filename:    mongo.py
-# @Author:      Eric Dou
-# @Time:        2022/10/11 17:00
-
 """
-Mongodb python interface on HPC server
+# ------------------------------------------------------------------------------
+# Author:    Zhixin Dou
+# Email:     bj600800@gmail.com
+# DATE:      2023/03/06
 
-update: 2022-10-11
+# Description: Mongodb python interface on HPC server
+# ------------------------------------------------------------------------------
 """
+
 
 import os
 import sys
