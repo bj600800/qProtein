@@ -17,11 +17,10 @@ logger = logger.setup_log(name=__name__)
 
 
 class SqlSearch(object):
-    def __init__(self, sql_db, table_name):
+    def __init__(self, sql_db):
         self.records = []
         self.record_counter = 0
         self.sql_db = sql_db
-        self.table_name = table_name
 
     def connect_sql(self, sql_db):
         connect = sqlite3.connect(sql_db)
@@ -42,7 +41,7 @@ class SqlSearch(object):
 
 class AFmetaSearch(SqlSearch):
     def __init__(self, sql_db, table_name):
-        super().__init__(sql_db, table_name)
+        super().__init__(sql_db)
 
         self.sql_db = sql_db
         self.table_name = table_name
@@ -78,16 +77,40 @@ class AFmetaSearch(SqlSearch):
         cursor.close()
 
 
-if __name__ == '__main__':
-    table_name = 'AFmeta'
-    AF_sql = r'G:\DB\AFmeta.db'
-    AFsearch = AFmetaSearch(AF_sql, table_name)
-    AFsearch.run()
-
-
+# if __name__ == '__main__':
+#     table_name = 'AFmeta'
+#     AF_sql = r'G:\DB\AFmeta.db'
+#     AFsearch = AFmetaSearch(AF_sql, table_name)
+#     AFsearch.run()
 
 
 class UniprotSearch(SqlSearch):
-    pass
+    def __init__(self, sql_db, results_db):
+        super().__init__(sql_db)
 
+        self.results_db = results_db
 
+    def fetch_accession(self, results_db, table_name):
+        cursor_results = self.connect_sql(results_db)
+        sql_cmd = f"SELECT sprot100_acc FROM {table_name} WHERE sprot100_acc != ''"
+        accession_list = [i[0] for i in self.fetch_results(cursor_results, sql_cmd)]
+        return accession_list
+
+    def get_annotation(self, sql_db, table_name, accession_list):
+        cursor_db = self.connect_sql(sql_db)
+        acc_id = ','.join(['?'] * len(accession_list))
+        cursor_db.execute(f"SELECT * FROM {table_name} WHERE accession in ({acc_id})", accession_list)
+        annotation = cursor_db.fetchall()
+        return annotation
+
+    def run(self):
+        accession_list = self.fetch_accession(self.results_db, table_name='summary')
+        annotation = self.get_annotation(self.sql_db, 'uniprot_sprot', accession_list)
+        print(annotation)
+        return annotation
+
+if __name__ == '__main__':
+    results_db = r'D:\subject\active\1-qProtein\data\tibet\summary.db'
+    sql_db = r'G:\DB\uniprot_sprot.db'
+    sprot_dat = UniprotSearch(sql_db, results_db)
+    sprot_dat.run()

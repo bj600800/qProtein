@@ -285,6 +285,8 @@ def annot_trembl_sql(trembl_db, sql_db):
                             .format(acc_id=','.join(['?'] * len(ret_acc_list))), ret_acc_list)
     ret_dat_list = cursor_sprot_db.fetchall()
     print(ret_dat_list)
+
+
     # update
     record_counter = 0
     records = []
