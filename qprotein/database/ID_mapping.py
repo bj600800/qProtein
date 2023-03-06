@@ -1,5 +1,13 @@
-import os.path
-import pprint
+"""
+# ------------------------------------------------------------------------------
+# Author:    Zhixin Dou
+# Email:     bj600800@gmail.com
+# DATE:      2023/03/06
+
+# Description: Copyright: Adapted from 'https://www.uniprot.org/help/id_mapping'
+# ------------------------------------------------------------------------------
+"""
+
 import re
 import time
 import json
@@ -11,20 +19,6 @@ from requests.adapters import HTTPAdapter, Retry
 
 
 class IDmapping:
-    """
-    Copyright: CODE belongs to 'https://www.uniprot.org/help/id_mapping'
-    Code logic:
-    --------------------------------------------------------------------
-    This script modified and added some function for generalization.
-
-    Note: 1. Using uniprot programmatically mapping id API.
-        2. Input: from_id, output: to_id
-        3. Collect failed ID as long as failed request.
-        4. Only have main function instead of loop iteration.
-
-    Update: 2022-09-29
-    """
-
     def __init__(self):
         self.POLLING_INTERVAL = 1
         self.API_URL = "https://rest.uniprot.org"

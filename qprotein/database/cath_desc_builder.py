@@ -1,9 +1,13 @@
-# -*- coding: utf-8 -*-
-# @Time    : 2023/2/24 11:34
-# @Author  : Zhixin Dou
 """
-Build cath description sqlite file, source file read in by a generator from SqlBuilder
+# ------------------------------------------------------------------------------
+# Author:    Zhixin Dou
+# Email:     bj600800@gmail.com
+# DATE:      2023/03/06
+
+# Description: Build cath description sqlite file, source file read in by a generator from SqlBuilder
+# ------------------------------------------------------------------------------
 """
+
 import re
 
 from qprotein.utilities import logger

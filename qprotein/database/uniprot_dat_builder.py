@@ -1,8 +1,11 @@
-# -*- coding: utf-8 -*-
-# @Time    : 2023/1/9 15:11
-# @Author  : Zhixin Dou
 """
-parse uniprot dat file to sqlite3
+# ------------------------------------------------------------------------------
+# Author:    Zhixin Dou
+# Email:     bj600800@gmail.com
+# DATE:      2023/03/06
+
+# Description: parse uniprot dat file to sqlite3
+# ------------------------------------------------------------------------------
 """
 
 from qprotein.utilities import logger
