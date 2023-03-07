@@ -59,7 +59,7 @@ class CathSql(SqlBuilder):
         logger.info(f"Start to create SQL table: {table_name} in SQL file {sql_db}")
 
         logger.info(f"Create SQL table: {table_name}")
-        cursor = self.create_table()
+        cursor = self.create_table(table_name, sql_db, column_definition)
 
         logger.info(f"Parse CATH desc file and insert records into {table_name}")
         self.parse_desc(cursor)

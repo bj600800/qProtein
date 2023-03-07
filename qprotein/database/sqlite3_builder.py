@@ -35,12 +35,12 @@ class SqlBuilder(object):
             for line in uniprot_dat:
                 yield line
 
-    def create_table(self):
-        connect = sqlite3.connect(self.sql_db)
+    def create_table(self, table_name, sql_db, column_definition):
+        connect = sqlite3.connect(sql_db)
         cursor = connect.cursor()
-        cursor.execute(f"DROP TABLE IF EXISTS {self.table_name}")
-        definition_str = ','.join([' '.join(i) for i in self.column_definition.items()])
-        cursor.execute(f"CREATE TABLE {self.table_name} ({definition_str})")
+        cursor.execute(f"DROP TABLE IF EXISTS {table_name}")
+        definition_str = ','.join([' '.join(i) for i in column_definition.items()])
+        cursor.execute(f"CREATE TABLE {table_name} ({definition_str})")
         return cursor
 
     def insert_many(self, cursor, records: list, values_num):

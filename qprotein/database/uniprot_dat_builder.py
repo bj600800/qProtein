@@ -123,7 +123,7 @@ class UniprotSql(SqlBuilder):
     def run(self):
         logger.info(f"Start to create SQL table: {table_name} in SQL file {sql_db}")
         logger.info(f"Create SQL table: {table_name}")
-        cursor = self.create_table()
+        cursor = self.create_table(table_name, sql_db, column_definition)
 
         logger.info(f"Parse uniprot dat file and insert records into {table_name}")
         self.parse_dat(cursor)
@@ -135,9 +135,9 @@ class UniprotSql(SqlBuilder):
 
 
 if __name__ == '__main__':
-    sprot_dat = r'G:\DB\uniprot_trembl.dat.gz'
+    sprot_dat = r'G:\DB\uniprot_sprot.dat.gz'
     sql_db = r'C:\Users\bj600\Desktop\qprotein_db.db'
-    table_name = 'trembl_dat'
+    table_name = 'sprot_dat'
     column_definition = {"accession": "TEXT", "gene_name": "TEXT",
                          "ec_number": "TEXT", "go_component": "TEXT",
                          "go_process": "TEXT", "go_function": "TEXT",
