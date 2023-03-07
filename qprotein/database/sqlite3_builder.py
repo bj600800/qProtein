@@ -20,12 +20,16 @@ class SqlBuilder(object):
         self.table_name = table_name
         self.column_definition = column_definition
 
+        self.record_items = {}
         self.records = []
         self.record_counter = 0
+        self.total_records = 0
 
     @staticmethod
-    def read_text_generator(filename):
+    def read_text_generator(filename, header):
         with open(filename, 'r') as f:
+            if header == True or 'T':
+                next(f)
             for line in f:
                 yield line
 
@@ -49,9 +53,18 @@ class SqlBuilder(object):
         cursor.executemany(f"INSERT INTO {self.table_name} VALUES({question_mark})", records)
         cursor.execute("commit")
 
-    def create_index(self, cursor):
+    def insert_many_column(self, cursor, column, records: list, values_num):
+        cursor.execute("begin")
+        question_mark = ', '.join(['?'] * values_num)
+        cursor.executemany(f"INSERT INTO {self.table_name} ({column}) VALUES ({question_mark})", records)
+        cursor.execute("commit")
+
+    def create_index_all(self, cursor):
         column_name = ', '.join(self.column_definition.keys())
         cursor.execute(f"CREATE INDEX {self.table_name}_idx ON {self.table_name} ({column_name})")
+
+    def create_index_one(self, cursor, column_name):
+        cursor.execute(f"CREATE INDEX {column_name}_idx ON {self.table_name} ({column_name})")
 
     @abstractmethod
     def run(self):

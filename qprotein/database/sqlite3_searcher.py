@@ -32,6 +32,14 @@ class SqlSearch(object):
         results_list = ret.fetchall()
         return results_list
 
+    def add_column(self, cursor, table_name, column_name, column_attr):
+        cursor.execute(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_attr}")
+
+    def update_many(self, cursor, table_name, set_column_name, condition_column_name, data):
+        sql_cmd = f'UPDATE {table_name} SET {set_column_name}=? WHERE {condition_column_name}=?'
+        cursor.executemany(sql_cmd, data)
+        cursor.execute("commit")
+
     @staticmethod
     def read_text_generator(filename):
         with open(filename, 'r') as f:
@@ -41,10 +49,10 @@ class SqlSearch(object):
 
 class AFmetaSearch(SqlSearch):
     def __init__(self, sql_db, table_name):
-        super().__init__(sql_db)
+        super(AFmetaSearch, self).__init__(sql_db)
 
-        self.sql_db = sql_db
         self.table_name = table_name
+
 
     def search_sql(self, cursor, target_list):
         results = []
@@ -74,7 +82,7 @@ class AFmetaSearch(SqlSearch):
 
         logger.info(f"Write the results in {file}")
         self.write_output(results, file)
-        cursor.close()
+
 
 
 # if __name__ == '__main__':

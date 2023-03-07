@@ -41,9 +41,9 @@ class CathSql(SqlBuilder):
             self.total_records += 1
 
     def parse_desc(self, cursor):
-        for line in self.read_text_generator(self.file):
+        for line in self.read_text_generator(self.file, header=False):
             if self.record_counter == 500000:
-                logger.info(f"Insert 500000 records into {table_name}, total records:" + str(self.total_records))
+                logger.info(f"Insert 500000 records into {self.table_name}, total records:" + str(self.total_records))
                 self.insert_many(cursor, self.records, 6)
                 self.records = []
                 self.record_counter = 0
@@ -52,22 +52,24 @@ class CathSql(SqlBuilder):
                 self.format_records(line)
 
         if self.record_counter > 0:
-            logger.info(f"Insert {self.record_counter} records into {table_name}")
+            logger.info(f"Insert {self.record_counter} records into {self.table_name}")
             self.insert_many(cursor, self.records, 6)
 
     def run(self):
-        logger.info(f"Start to create SQL table: {table_name} in SQL file {sql_db}")
+        logger.info(f"Start to create SQL table: {self.table_name} in SQL file {self.sql_db}")
 
-        logger.info(f"Create SQL table: {table_name}")
-        cursor = self.create_table(table_name, sql_db, column_definition)
+        logger.info(f"Create SQL table: {self.table_name}")
+        cursor = self.create_table(self.table_name, self.sql_db, self.column_definition)
 
-        logger.info(f"Parse CATH desc file and insert records into {table_name}")
+        logger.info(f"Parse file and insert records into {self.table_name}")
         self.parse_desc(cursor)
 
-        logger.info(f'Creating index for SQL table: {table_name}')
-        self.create_index(cursor)
+        logger.info(f'Creating index for SQL table: {self.table_name}')
+        self.create_index_all(cursor)
 
-        logger.info(f'Successfully built SQL database for {table_name}')
+        logger.info(f'Successfully built SQL database for {self.table_name}')
+
+
 
 
 if __name__ == '__main__':

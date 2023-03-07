@@ -8,8 +8,9 @@
 # ------------------------------------------------------------------------------
 """
 
-from qprotein.utilities import logger
+
 from qprotein.database.sqlite3_builder import SqlBuilder
+from qprotein.utilities import logger
 
 logger = logger.setup_log(name=__name__)
 
@@ -101,11 +102,10 @@ class UniprotSql(SqlBuilder):
             self.total_records += 1
 
     def parse_dat(self, cursor):
-        # TODO: due to the relevance between format_records, the method not in abstract class.
         for line in self.read_gz_generator(self.dat_file):
             if self.record_counter == 500000:
                 self.insert_many(cursor, self.records, 8)
-                logger.info(f"Insert 500000 records into {table_name}, total records:" + str(self.total_records))
+                logger.info(f"Insert 500000 records into {self.table_name}, total records:" + str(self.total_records))
 
                 self.records = []
                 self.record_counter = 0
@@ -115,23 +115,23 @@ class UniprotSql(SqlBuilder):
 
         # Insert the remaining records
         if self.record_counter > 0:
-            logger.info(f"Insert {self.record_counter} records into {table_name}")
+            logger.info(f"Insert {self.record_counter} records into {self.table_name}")
             self.insert_many(cursor, self.records, 8)
 
         logger.info(f"Total records:" + str(self.total_records))
 
     def run(self):
-        logger.info(f"Start to create SQL table: {table_name} in SQL file {sql_db}")
-        logger.info(f"Create SQL table: {table_name}")
-        cursor = self.create_table(table_name, sql_db, column_definition)
+        logger.info(f"Start to create SQL table: {self.table_name} in SQL file {self.sql_db}")
+        logger.info(f"Create SQL table: {self.table_name}")
+        cursor = self.create_table(self.table_name, self.sql_db, self.column_definition)
 
-        logger.info(f"Parse uniprot dat file and insert records into {table_name}")
+        logger.info(f"Parse uniprot dat file and insert records into {self.table_name}")
         self.parse_dat(cursor)
 
-        logger.info(f'Create index for SQL table: {table_name}')
-        self.create_index(cursor)
+        logger.info(f'Create index for SQL table: {self.table_name}')
+        self.create_index_all(cursor)
 
-        logger.info(f'Successfully built SQL database for {table_name}')
+        logger.info(f'Successfully built SQL database for {self.table_name}')
 
 
 if __name__ == '__main__':
