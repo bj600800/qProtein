@@ -81,9 +81,9 @@ if __name__ == '__main__':
     cazy.run()
 
 
-class MeropsAnalysis(CazyAnalysis, SqlSearch):
+class MeropsAnalysis(SqlBuilder, SqlSearch):
     def __init__(self, merops_output, sql_db, table_name, column_definition):
-        super(MeropsAnalysis, self).__init__(sql_db, table_name, sql_db, column_definition)
+        super(MeropsAnalysis, self).__init__(sql_db, table_name, column_definition)
         self.sql_db = sql_db
         self.table_name = table_name
 
@@ -126,7 +126,7 @@ class MeropsAnalysis(CazyAnalysis, SqlSearch):
     def run(self):
         cursor = self.connect_sql(self.sql_db)
 
-        logger.info(f"Parse file and insert records into {self.table_name}")
+        logger.info(f"Parse Merops and insert records into {self.table_name}")
         self.parse_merops(cursor, 'merops70_family', 'TEXT')
 
         logger.info(f'Creating index for SQL table: {self.table_name}')
