@@ -7,6 +7,7 @@
 # Description: perform sequence annotation and sql builder for each database
 # ------------------------------------------------------------------------------
 """
+
 from qprotein.database.sqlite3_builder import SqlBuilder
 from qprotein.database.sqlite3_searcher import SqlSearch
 from qprotein.utilities import logger
@@ -15,23 +16,23 @@ logger = logger.setup_log(name=__name__)
 
 
 class CreateSql(SqlBuilder):
-    def __init__(self, table_name, column_definition, sql_db):
+    def __init__(self, table_name, sql_db):
         super(SqlBuilder, self).__init__()
         self.table_name = table_name
-        self.column_definition = column_definition
         self.sql_db = sql_db
 
         self.create()
 
     def create(self):
-        cursor = SqlBuilder.create_table(self.table_name, self.sql_db, self.column_definition)
-        return cursor
+        sql = f"CREATE TABLE {self.table_name} (query_name TEXT PRIMARY KEY)"
+        self.create_table(self.table_name, self.sql_db, sql)
+
 
 table_name = 'results_summary'
-column_definition = [('query_name', '')]
 sql_db = r'C:\Users\bj600\Desktop\qprotein_results.db'
 
-results_sql = CreateSql(table_name, column_definition, sql_db)
+results_sql = CreateSql(table_name, sql_db)
+logger.info(f'Create SQL table {table_name} at {sql_db}')
 
 
 class CazyAnalysis(SqlBuilder):
@@ -83,17 +84,18 @@ class CazyAnalysis(SqlBuilder):
         logger.info(f"Total records:" + str(self.total_records))
 
     def run(self):
-        logger.info(f"Create SQL table: {self.table_name} in SQL file {self.sql_db}")
+        columns = [i[0] for i in self.column_definition]
+        logger.info(f"Connect SQL table: {self.table_name} in {self.sql_db}")
         cursor = self.connect_sql(self.sql_db)
 
+        logger.info(f"Add columns {', '.join(columns)} into table {self.table_name}")
         self.add_column(cursor, self.table_name, self.column_definition)
 
-        logger.info(f"!! Parse cazy and insert records into {self.table_name}")
+        logger.info(f"!! Parse cazy output and insert records")
         self.parse_cazy(cursor)
 
-        logger.info(f'Create index for SQL table: {self.table_name}')
-        columns_name = ', '.join([i[0] for i in self.column_definition[1:]])
-        self.create_index(cursor, 'cazy', columns_name)
+        logger.info(f'Create index cazy_idx for SQL table: {self.table_name}')
+        self.create_index(cursor, columns)
 
 
 if __name__ == '__main__':
@@ -121,7 +123,7 @@ class MeropsAnalysis(SqlBuilder, SqlSearch):
 
     def parse_items(self, line):
         self.record_items['query_name'] = line[0]
-        self.record_items['merops70_family'] = line[1].split('#')[1]
+        self.record_items['merops_family'] = line[1].split('#')[1]
 
     def format_records(self, line):
         self.parse_items(line)
@@ -129,13 +131,12 @@ class MeropsAnalysis(SqlBuilder, SqlSearch):
         self.record_counter += 1
         self.total_records += 1
 
-    def parse_merops(self, cursor):
-        columns = [column[0] for column in self.column_definition]
+    def parse_merops(self, cursor, columns):
         for line in self.read_text_generator(self.merops_output, header=True):
             line = line.split('\t')
 
             if self.record_counter == 500000:
-                self.update_many_columns(cursor, self.table_name, columns, self.records, 'query_name', 2)
+                self.insert_update_columns(cursor, self.table_name, columns, self.records)
                 logger.info(f"Insert 500000 records into {self.table_name}, total records:" + str(self.total_records))
 
                 self.records = []
@@ -145,27 +146,31 @@ class MeropsAnalysis(SqlBuilder, SqlSearch):
 
         if self.record_counter > 0:
             logger.info(f"Insert {self.record_counter} records into {self.table_name}")
-            self.update_many_columns(cursor, self.table_name, columns, self.records, 'query_name', 2)
+            self.insert_update_columns(cursor, self.table_name, columns, self.records)
 
         logger.info(f"Total records:" + str(self.total_records))
 
     def run(self):
+        columns = [i[0] for i in self.column_definition]
+
+        logger.info(f"Connect SQL table: {self.table_name} in {self.sql_db}")
         cursor = self.connect_sql(self.sql_db)
+
+        logger.info(f"Add columns {', '.join(columns)} into table {self.table_name}")
         self.add_column(cursor, self.table_name, self.column_definition)
 
-        logger.info(f"!! Parse Merops and insert records into {self.table_name}")
-        self.parse_merops(cursor)
+        logger.info(f"!! Parse Merops output and insert records")
+        self.parse_merops(cursor, columns)
 
-        logger.info(f'Create index for SQL table: {self.table_name}')
-        column_name = ', '.join([i[0] for i in self.column_definition[1:]])
-        self.create_index(cursor, 'merops', column_name)
+        logger.info(f'Create index merops_idx for SQL table: {self.table_name}')
+        self.create_index(cursor, columns)
 
 
 if __name__ == '__main__':
     merops_output = r'D:\subject\active\1-qProtein\data\tibet\merops_output.tab'
     sql_db = r'C:\Users\bj600\Desktop\qprotein_results.db'
     table_name = 'results_summary'
-    column_definition = [('query_name', 'TEXT'), ('merops70_family', 'TEXT')]
+    column_definition = [('query_name', 'TEXT'), ('merops_family', 'TEXT')]
     merops = MeropsAnalysis(merops_output, sql_db, table_name, column_definition)
     merops.run()
 
@@ -188,6 +193,8 @@ class SprotDmnd(SqlBuilder, SqlSearch):
     def parse_items_from_dmnd(self, line):
         self.record_items['query_name'] = line[0]
         self.record_items['sprot_acc'] = line[1].split('|')[1]
+        if self.record_items['sprot_acc'] == 'P28074':
+            print(line)
         self.record_items['sprot_start'] = line[8]
         self.record_items['sprot_end'] = line[9]
 
@@ -198,13 +205,12 @@ class SprotDmnd(SqlBuilder, SqlSearch):
         self.record_counter += 1
         self.total_records += 1
 
-    def parse_dmnd(self, cursor):
-        columns = [column[0] for column in self.column_definition]
+    def parse_dmnd(self, cursor, columns):
         for line in self.read_text_generator(self.dmnd_output, header=False):
             line = line.split('\t')
             if self.record_counter == 500000:
-                self.update_many_columns(cursor, self.table_name, columns, self.records, 'query_name', 4)
                 logger.info(f"Insert 500000 records into {self.table_name}, total records:" + str(self.total_records))
+                self.insert_update_columns(cursor, self.table_name, columns, self.records)
 
                 self.records = []
                 self.record_counter = 0
@@ -213,24 +219,28 @@ class SprotDmnd(SqlBuilder, SqlSearch):
 
         if self.record_counter > 0:
             logger.info(f"Insert {self.record_counter} records into {self.table_name}")
-            self.update_many_columns(cursor, self.table_name, columns, self.records, 'query_name', 4)
+            self.insert_update_columns(cursor, self.table_name, columns, self.records)
 
         logger.info(f"Total records:" + str(self.total_records))
 
     def run(self):
+        columns = [i[0] for i in self.column_definition]
+
+        logger.info(f"Connect SQL table: {self.table_name} in {self.sql_db}")
         cursor = self.connect_sql(self.sql_db)
+
+        logger.info(f"Add columns {', '.join(columns)} into table {self.table_name}")
         self.add_column(cursor, self.table_name, self.column_definition)
 
         logger.info(f"!! Parse {self.idx_name_prefix} and insert records into {self.table_name}")
-        self.parse_dmnd(cursor)
+        self.parse_dmnd(cursor, columns)
 
-        columns_name = ', '.join([i[0] for i in self.column_definition[1:]])
         logger.info(f'Create index for SQL table: {self.table_name}')
-        self.create_index(cursor, self.idx_name_prefix, columns_name)
+        self.create_index(cursor, columns)
 
 
 if __name__ == '__main__':
-    dmnd_output = r'D:\subject\active\1-qProtein\data\tibet\sprot_100.tab'
+    dmnd_output = r'D:\subject\active\1-qProtein\data\tibet\sprot_output_70.tab'
     sql_db = r'C:\Users\bj600\Desktop\qprotein_results.db'
     table_name = 'results_summary'
     column_definition = [('query_name', 'TEXT'), ('sprot_acc', 'TEXT'),
@@ -269,8 +279,10 @@ class SprotAnnotation(SqlBuilder, SqlSearch):
         uniprot_dat = []
         total_query = len(acc)
         for i in range(0, total_query, batch_size):
-            batch_acc = acc[i:i+batch_size]
-            sql_cmd = "SELECT * FROM {} WHERE accession IN ({})".format(uniprot_table_name, ', '.join(['?'] * len(batch_acc)))
+            batch_acc = acc[i:i + batch_size]
+            sql_cmd = "SELECT * FROM {} WHERE accession IN ({})".format(uniprot_table_name,
+                                                                        ', '.join(['?'] * len(batch_acc))
+                                                                        )
             cursor.execute(sql_cmd, batch_acc)
             return_dat = cursor.fetchall()
             uniprot_dat.extend(return_dat)
@@ -292,12 +304,11 @@ class SprotAnnotation(SqlBuilder, SqlSearch):
         self.record_counter += 1
         self.total_records += 1
 
-    def parse_uniprot(self, cursor):
-        columns = [column[0] for column in self.column_definition]
+    def parse_uniprot(self, cursor, columns):
         uniprot_dat = self.get_uniprot_dat(self.uniprot_table)
         for i in uniprot_dat:
             if self.record_counter == 500000:
-                self.update_many_columns(cursor, self.table_name, columns, self.records, self.target_column, 7)
+                self.update_many_columns(cursor, self.table_name, columns, self.records)
                 logger.info(f"Insert 500000 records into {self.table_name}, total records:" + str(self.total_records))
 
                 self.records = []
@@ -306,20 +317,22 @@ class SprotAnnotation(SqlBuilder, SqlSearch):
                 self.format_records(i)
         if self.record_counter > 0:
             logger.info(f"Update {self.record_counter} records into {self.table_name}")
-            self.update_many_columns(cursor, self.table_name, columns, self.records, self.target_column, 7)
+            self.update_many_columns(cursor, self.table_name, columns, self.records)
 
     def run(self):
+        logger.info(f"Connect SQL table: {self.table_name} in {self.sql_db}")
+        columns = [i[0] for i in self.column_definition]
+
         cursor = self.connect_sql(self.sql_db)
 
-        logger.info(f"Add columns into table {self.table_name}")
+        logger.info(f"Add columns {', '.join(columns)} into table {self.table_name}")
         self.add_column(cursor, self.table_name, self.column_definition)
 
         logger.info(f"!! Parse sprot: update and insert records into {self.table_name}")
-        self.parse_uniprot(cursor)
+        self.parse_uniprot(cursor, columns)
 
         logger.info(f'Create index for SQL table: {self.table_name}')
-        columns_name = ', '.join([i[0] for i in self.column_definition[1:]])
-        self.create_index(cursor, self.uniprot_table, columns_name)
+        self.create_index(cursor, columns)
 
 
 if __name__ == '__main__':
@@ -356,8 +369,9 @@ class TremblDmnd(SprotDmnd):
         self.record_items['trembl_start'] = line[8]
         self.record_items['trembl_end'] = line[9]
 
+
 if __name__ == '__main__':
-    dmnd_output = r'D:\subject\active\1-qProtein\data\tibet\trembl_100.tab'
+    dmnd_output = r'D:\subject\active\1-qProtein\data\tibet\trembl_output_70.tab'
     sql_db = r'C:\Users\bj600\Desktop\qprotein_results.db'
     table_name = 'results_summary'
     column_definition = [('query_name', 'TEXT'), ('trembl_acc', 'TEXT'),
@@ -392,19 +406,21 @@ class TremblAnnotation(SprotAnnotation):
         self.record_items['trembl_interpro'] = dat[6]
         self.record_items['trembl_pfam'] = dat[7]
 
-
     def run(self):
+        columns = [i[0] for i in self.column_definition]
+        logger.info(f"Connect SQL table: {self.table_name} in {self.sql_db}")
         cursor = self.connect_sql(self.sql_db)
 
-        logger.info(f"Add columns into table {self.table_name}")
+        logger.info(f"Add columns {', '.join(columns)} into table {self.table_name}")
         self.add_column(cursor, self.table_name, self.column_definition)
 
-        logger.info(f"!! Parse Trembl: update and insert records into {self.table_name}")
-        self.parse_uniprot(cursor)
+        logger.info(f"!! Parse Trembl update and insert records into {self.table_name}")
+        self.parse_uniprot(cursor, columns)
 
         logger.info(f'Create index for SQL table: {self.table_name}')
-        columns_name = ', '.join([i[0] for i in self.column_definition[1:]])
-        self.create_index(cursor, self.uniprot_table, columns_name)
+
+        self.create_index(cursor, columns)
+
 
 if __name__ == '__main__':
     sql_db = r'C:\Users\bj600\Desktop\qprotein_results.db'
@@ -418,9 +434,3 @@ if __name__ == '__main__':
 
     trembl_dat = TremblAnnotation(sql_db, table_name, uniprot_db, column_definition, uniprot_table, target_column)
     trembl_dat.run()
-
-
-
-
-
-

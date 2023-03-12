@@ -13,8 +13,7 @@ import shutil
 import warnings
 
 import pandas as pd
-from Bio import BiopythonWarning
-from Bio import SeqIO
+from Bio import BiopythonWarning, SeqIO
 from numpy import mean
 
 warnings.simplefilter('ignore', BiopythonWarning)
@@ -52,7 +51,9 @@ class Extractor:
             pdb_path = os.path.join(path, 'ranked_0.pdb')
             src_file = open(pdb_path, 'rb')
             tar_file = open(os.path.join(self.output_dir, 'results', 'structures',
-                                         os.path.basename(path) + '.pdb'), 'wb')
+                                         os.path.basename(path) + '.pdb'
+                                         ), 'wb'
+                            )
             shutil.copyfileobj(src_file, tar_file)
 
     def get_len(self):
@@ -76,7 +77,7 @@ class Extractor:
         self.info = {
             'Sequence length': self.get_len(),
             'pLDDT from local': self.extract_plddt(),
-        }
+            }
 
         df = pd.DataFrame.from_dict(self.info)
         csv_path = os.path.join(self.output_dir, 'results', 'data.csv')

@@ -16,6 +16,7 @@ from qprotein.utilities import logger
 
 logger = logger.setup_log(name=__name__)
 
+
 class SqlBuilder(object):
 
     def __init__(self, sql_db, table_name, column_definition):
@@ -42,12 +43,11 @@ class SqlBuilder(object):
                 yield line
 
     @staticmethod
-    def create_table(table_name, sql_db, column_definition):
+    def create_table(table_name, sql_db, sql):
         connect = sqlite3.connect(sql_db)
         cursor = connect.cursor()
         cursor.execute(f"DROP TABLE IF EXISTS {table_name}")
-        definition_str = ', '.join([' '.join(i) for i in column_definition])
-        cursor.execute(f"CREATE TABLE {table_name} ({definition_str})")
+        cursor.execute(sql)
         return cursor
 
     def add_column(self, cursor, table_name, column_definition: list):
@@ -79,47 +79,38 @@ class SqlBuilder(object):
         cursor.executemany(f"INSERT INTO {self.table_name} ({columns}) VALUES ({question_mark})", records)
         cursor.execute("commit")
 
-    def update_many_columns(self, cursor, table_name, columns, records: list, target_column, values_num):
-        # TODO the method should be separated into Update and insert
-
-        update_records = []
-        insert_records = []
-        search_ret = []
-        batch_size = 100000
-        target_value = [record[0] for record in records]
-        total_query = len(target_value)
-        for i in range(0, total_query, batch_size):
-            batch_acc = target_value[i:i+batch_size]
-            question_mark = ', '.join(['?'] * len(batch_acc))
-            sql_cmd = f"SELECT {target_column} FROM {table_name} WHERE {target_column} IN ({question_mark})"
-            cursor.execute(sql_cmd, batch_acc)
-            ret = cursor.fetchall()
-            search_ret.extend([str(i[0]) for i in ret])
-
-        for record in records:
-            if record[0] in search_ret:
-                update_records.append(record)
-            else:
-                insert_records.append(record)
-
+    def update_many_columns(self, cursor, table_name, columns, records: list):
         cursor.execute("begin")
-        if update_records:
-            logger.info('Has {} records to update.'.format(len(update_records)))
-            update_records = [(t[1:] + (t[0],)) for t in update_records]
-            columns_question = ', '.join([i+' = ?' for i in columns[1:]])
-            cursor.executemany(f"UPDATE {self.table_name} SET {columns_question} WHERE {columns[0]} = ?", update_records)
-
-        if insert_records:
-            logger.info('Has {} records to insert.'.format(len(insert_records)))
-            columns = ', '.join(columns)
-            question_mark = ', '.join(['?'] * values_num)
-            cursor.executemany(f"INSERT INTO {self.table_name} ({columns}) VALUES ({question_mark})", insert_records)
+        target_column = columns[0]
+        columns_question = ', '.join([i+'=?' for i in columns[1:]])
+        format_records = [i[1:] + (i[0],) for i in records]
+        sql = f"UPDATE {table_name} SET {columns_question} where {target_column}=?"
+        cursor.executemany(sql, format_records)
         cursor.execute("commit")
 
-    def create_index(self, cursor, idx_name, column_name):
-        sql = f"CREATE INDEX {idx_name}_idx ON {self.table_name} ({column_name})"
-        cursor.execute(sql)
+    def insert_update_columns(self, cursor, table_name, columns, records: list):
+        batch_size = 500000
+        total_query = len(records)
+        question_num = len(columns)
+        column_name = ', '.join(columns)
+        for i in range(0, total_query, batch_size):
+            batch_acc = records[i:i+batch_size]
+            question_mark = ', '.join(['?'] * question_num)
+            excluded_clause = ', '.join([i+'=excluded.'+i for i in columns[1:]])
 
+            # use this sql need has the primary key.
+            sql_cmd = f"INSERT INTO {table_name} ({column_name}) VALUES ({question_mark})" \
+                      f"ON CONFLICT ({columns[0]}) DO UPDATE SET {excluded_clause}"
+            cursor.execute('begin')
+            cursor.executemany(sql_cmd, batch_acc)
+            cursor.execute('commit')
+
+    def create_index(self, cursor, columns):
+        for column in columns:
+            cursor.execute('begin')
+            cursor.execute(f"CREATE INDEX IF NOT EXISTS index_{column} ON {self.table_name} ({column})")
+            cursor.execute('commit')
+        cursor.close()
 
     @abstractmethod
     def run(self):

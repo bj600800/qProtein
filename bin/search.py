@@ -10,9 +10,6 @@ import time
 
 
 def create_sqlite(sql_db):
-    if os.path.exists(sql_db):
-        print(sql_db, ' existed, deleting...')
-        os.remove(sql_db)
     connect = sqlite3.connect(sql_db)
     cursor = connect.cursor()
     cursor.execute("DROP TABLE IF EXISTS summary")
@@ -130,7 +127,7 @@ def parse_sprot_dmnd(sprot_output, sql_db):
     for i in text:
         if record_counter == 10000:
             cursor.execute("begin")
-            cursor.executemany("UPDATE summary SET sprot100_acc = ?, sprot_start = ?, sprot_end = ?, where acc_id=?",
+            cursor.executemany("UPDATE summary SET sprot100_acc = ?, sprot_start = ?, sprot_end = ? where acc_id=?",
                                records)
             cursor.execute("commit")
             record_counter = 0
@@ -173,7 +170,7 @@ def annot_sprot_sql(sprot_db, sql_db):
     # fetch dat_info from sprot_db in table (uniprot_sprot)
     connect_sprot_db = sqlite3.connect(sprot_db)
     cursor_sprot_db = connect_sprot_db.cursor()
-    cursor_sprot_db.execute("SELECT * FROM uniprot_sprot WHERE accession in ({acc_id})"
+    cursor_sprot_db.execute("SELECT * FROM sprot_dat WHERE accession in ({acc_id})"
                             .format(acc_id=','.join(['?'] * len(ret_acc_list))), ret_acc_list)
     ret_dat_list = cursor_sprot_db.fetchall()
 
@@ -281,7 +278,7 @@ def annot_trembl_sql(trembl_db, sql_db):
     # fetch dat_info from sprot_db in table (uniprot_sprot)
     connect_sprot_db = sqlite3.connect(trembl_db)
     cursor_sprot_db = connect_sprot_db.cursor()
-    cursor_sprot_db.execute("SELECT * FROM uniprot_trembl WHERE accession in ({acc_id})"
+    cursor_sprot_db.execute("SELECT * FROM trembl_dat WHERE accession in ({acc_id})"
                             .format(acc_id=','.join(['?'] * len(ret_acc_list))), ret_acc_list)
     ret_dat_list = cursor_sprot_db.fetchall()
     print(ret_dat_list)
@@ -444,13 +441,13 @@ def main():
     print(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
     print('Starting to summary outputs, please wait...')
 
-    cazy_output = r'D:\subject\active\PyMulstruct\data\tibet\cazy_overview.txt'
-    merops_output = r'D:\subject\active\PyMulstruct\data\tibet\merops_output.tab'
-    sql_db = r'D:\subject\active\PyMulstruct\data\tibet\summary.db'
-    sprot_output = r'D:\subject\active\PyMulstruct\data\tibet\sprot_100.tab'
-    sprot_db = r'G:\DB\uniprot_sprot.db'
-    trembl_output = r'D:\subject\active\PyMulstruct\data\tibet\trembl_100.tab'
-    trembl_db = r'G:\DB\newdb'
+    cazy_output = r'D:\subject\active\1-qProtein\data\tibet\cazy_overview.txt'
+    merops_output = r'D:\subject\active\1-qProtein\data\tibet\merops_output.tab'
+    sql_db = r'D:\subject\active\1-qProtein\data\tibet\summary.db'
+    sprot_output = r'D:\subject\active\1-qProtein\data\tibet\sprot_output_70.tab'
+    sprot_db = r'G:\DB\qprotein_db.db'
+    trembl_output = r'D:\subject\active\1-qProtein\data\tibet\trembl_output_70.tab'
+    trembl_db = r'G:\DB\qprotein_db.db'
     pdb_output = r'D:\subject\active\PyMulstruct\data\tibet\pdb_100.tab'
     struct_path = r'D:\subject\active\PyMulstruct\data\tibet\str'
     sele_str_dir_path = r'D:\subject\active\PyMulstruct\data\tibet\target_str'
@@ -462,7 +459,7 @@ def main():
     annot_sprot_sql(sprot_db, sql_db)
     parse_trembl_dmnd(trembl_output, sql_db)
     annot_trembl_sql(trembl_db, sql_db)
-    parse_pdb(pdb_output, sql_db)
+    # parse_pdb(pdb_output, sql_db)
     # mmcif_sql(struct_path, sql_db)
     # sele_mmcif(condition='GH', sql_db=sql_db, sele_str_dir_path=sele_str_dir_path)
 

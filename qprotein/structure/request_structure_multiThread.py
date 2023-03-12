@@ -24,7 +24,7 @@ def check_response(response):
 def sql_parse(sql_db):
     connect = sqlite3.connect(sql_db)
     cursor = connect.cursor()
-    sql = "SELECT acc_id, sprot100_acc, trembl100_acc FROM summary WHERE trembl100_acc !='' or sprot100_acc !=''"
+    sql = "SELECT query_name, cazy_family, sprot_acc, trembl_acc FROM summary WHERE trembl100_acc !='' or sprot100_acc !=''"
     cursor.execute("begin")
     cursor.execute(sql)
     sql_rows = cursor.fetchall()
@@ -61,7 +61,7 @@ class Producer(threading.Thread):
         """
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.25 Safari/537.36 Core/1.70.3861.400 QQBrowser/10.7.4313.400"
-        }
+            }
         base_url = self.base_url
         print('Get uniID: ', uniID)
 
@@ -164,7 +164,7 @@ class Consumer(threading.Thread):
         print("Downloaded {url}".format(url=url))  # 打印线程thread和被爬取结构的url
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36"
-        }
+            }
         try:
             cif = requests.get(url, headers=headers)
             check_response(cif)
