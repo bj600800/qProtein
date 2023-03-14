@@ -11,7 +11,6 @@
 from abc import abstractmethod
 import sqlite3
 import gzip
-
 from qprotein.utilities import logger
 
 logger = logger.setup_log(name=__name__)

@@ -22,20 +22,22 @@ class SqlSearch(object):
         self.record_counter = 0
         self.sql_db = sql_db
 
-    def connect_sql(self, sql_db):
+    @staticmethod
+    def connect_sql(sql_db):
         connect = sqlite3.connect(sql_db)
         cursor = connect.cursor()
         return cursor
 
-    def fetch_results(self, cursor, sql_cmd):
+    @staticmethod
+    def fetch_results(cursor, sql_cmd):
         cursor.execute(sql_cmd)
-        results_list = [i[0] for i in cursor.fetchall()]
+        results_list = cursor.fetchall()
         return results_list
 
-    def update_many(self, cursor, table_name, set_column_name, condition_column_name, data):
-        sql_cmd = f'UPDATE {table_name} SET {set_column_name}=? WHERE {condition_column_name}=?'
-        cursor.executemany(sql_cmd, data)
-        cursor.execute("commit")
+    # def update_many(self, cursor, table_name, set_column_name, condition_column_name, data):
+    #     sql_cmd = f'UPDATE {table_name} SET {set_column_name}=? WHERE {condition_column_name}=?'
+    #     cursor.executemany(sql_cmd, data)
+    #     cursor.execute("commit")
 
     @staticmethod
     def read_text_generator(filename):

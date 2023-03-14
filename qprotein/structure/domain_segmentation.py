@@ -67,9 +67,9 @@ def parse_cath_sql():
 
 
 def main():
-    fasta_file = r'D:\subject\active\PyMulstruct\data\GH10\GH10.fasta'
-    cath_output = r'D:\subject\active\PyMulstruct\data\GH10\GH10_diamond_filter.out'
-    segment_domain_output_file = r'D:\subject\active\PyMulstruct\data\GH10\GH10_segment_domain.fasta'
+    fasta_file = r'D:\subject\active\1-qProtein\data\tibet\tibet_target_seq.fasta'
+    cath_output = r'D:\subject\active\1-qProtein\data\tibet\tibet_cath_enzymes_filter.out'
+    segment_domain_output_file = r'D:\subject\active\1-qProtein\data\tibet\tibet_enzymes_segment_domain.fasta'
     blastp_output = read_blastp_output(cath_output)
     fasta = read_fasta(fasta_file)
     segment_fasta = domain_segmentation(fasta, blastp_output)

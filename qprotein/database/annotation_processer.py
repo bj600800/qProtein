@@ -7,9 +7,11 @@
 # Description: perform sequence annotation and sql builder for each database
 # ------------------------------------------------------------------------------
 """
+import sys
+sys.path.append("..")
 
-from qprotein.database.sqlite3_builder import SqlBuilder
-from qprotein.database.sqlite3_searcher import SqlSearch
+from sqlite3_builder import SqlBuilder
+from sqlite3_searcher import SqlSearch
 from qprotein.utilities import logger
 
 logger = logger.setup_log(name=__name__)
@@ -29,7 +31,7 @@ class CreateSql(SqlBuilder):
 
 
 table_name = 'results_summary'
-sql_db = r'C:\Users\bj600\Desktop\qprotein_results.db'
+sql_db = r'D:\subject\active\1-qProtein\data\tibet\qprotein_results.db'
 
 results_sql = CreateSql(table_name, sql_db)
 logger.info(f'Create SQL table {table_name} at {sql_db}')
@@ -168,7 +170,7 @@ class MeropsAnalysis(SqlBuilder, SqlSearch):
 
 if __name__ == '__main__':
     merops_output = r'D:\subject\active\1-qProtein\data\tibet\merops_output.tab'
-    sql_db = r'C:\Users\bj600\Desktop\qprotein_results.db'
+    sql_db = r'D:\subject\active\1-qProtein\data\tibet\qprotein_results.db'
     table_name = 'results_summary'
     column_definition = [('query_name', 'TEXT'), ('merops_family', 'TEXT')]
     merops = MeropsAnalysis(merops_output, sql_db, table_name, column_definition)
@@ -240,8 +242,8 @@ class SprotDmnd(SqlBuilder, SqlSearch):
 
 
 if __name__ == '__main__':
-    dmnd_output = r'D:\subject\active\1-qProtein\data\tibet\sprot_output_70.tab'
-    sql_db = r'C:\Users\bj600\Desktop\qprotein_results.db'
+    dmnd_output = r'D:\subject\active\1-qProtein\data\tibet\sprot_90.tab'
+    sql_db = r'D:\subject\active\1-qProtein\data\tibet\qprotein_results.db'
     table_name = 'results_summary'
     column_definition = [('query_name', 'TEXT'), ('sprot_acc', 'TEXT'),
                          ('sprot_start', 'TEXT'), ('sprot_end', 'TEXT')]
@@ -268,7 +270,7 @@ class SprotAnnotation(SqlBuilder, SqlSearch):
     def get_candidates(self):
         cursor = self.connect_sql(self.sql_db)
         sql_cmd = f"SELECT {self.target_column} FROM results_summary WHERE {self.target_column} != ''"
-        acc = self.fetch_results(cursor, sql_cmd)
+        acc = [i[0] for i in self.fetch_results(cursor, sql_cmd)]
         return acc
 
     def get_uniprot_dat(self, uniprot_table_name):
@@ -280,9 +282,8 @@ class SprotAnnotation(SqlBuilder, SqlSearch):
         total_query = len(acc)
         for i in range(0, total_query, batch_size):
             batch_acc = acc[i:i + batch_size]
-            sql_cmd = "SELECT * FROM {} WHERE accession IN ({})".format(uniprot_table_name,
-                                                                        ', '.join(['?'] * len(batch_acc))
-                                                                        )
+            sql_cmd = "SELECT * FROM {} WHERE accession IN ({})"\
+                    .format(uniprot_table_name, ', '.join(['?'] * len(batch_acc)))
             cursor.execute(sql_cmd, batch_acc)
             return_dat = cursor.fetchall()
             uniprot_dat.extend(return_dat)
@@ -336,8 +337,8 @@ class SprotAnnotation(SqlBuilder, SqlSearch):
 
 
 if __name__ == '__main__':
-    sql_db = r'C:\Users\bj600\Desktop\qprotein_results.db'
-    uniprot_db = r'C:\Users\bj600\Desktop\qprotein_db.db'
+    sql_db = r'D:\subject\active\1-qProtein\data\tibet\qprotein_results.db'
+    uniprot_db = r'D:\subject\active\1-qProtein\data\tibet\qprotein_db.db'
     table_name = 'results_summary'
     uniprot_table = 'sprot_dat'
     target_column = 'sprot_acc'
@@ -371,8 +372,8 @@ class TremblDmnd(SprotDmnd):
 
 
 if __name__ == '__main__':
-    dmnd_output = r'D:\subject\active\1-qProtein\data\tibet\trembl_output_70.tab'
-    sql_db = r'C:\Users\bj600\Desktop\qprotein_results.db'
+    dmnd_output = r'D:\subject\active\1-qProtein\data\tibet\trembl_90.tab'
+    sql_db = r'D:\subject\active\1-qProtein\data\tibet\qprotein_results.db'
     table_name = 'results_summary'
     column_definition = [('query_name', 'TEXT'), ('trembl_acc', 'TEXT'),
                          ('trembl_start', 'TEXT'), ('trembl_end', 'TEXT')]
@@ -423,8 +424,8 @@ class TremblAnnotation(SprotAnnotation):
 
 
 if __name__ == '__main__':
-    sql_db = r'C:\Users\bj600\Desktop\qprotein_results.db'
-    uniprot_db = r'C:\Users\bj600\Desktop\qprotein_db.db'
+    sql_db = r'D:\subject\active\1-qProtein\data\tibet\qprotein_results.db'
+    uniprot_db = r'D:\subject\active\1-qProtein\data\tibet\qprotein_db.db'
     table_name = 'results_summary'
     uniprot_table = 'trembl_dat'
     target_column = 'trembl_acc'
@@ -434,3 +435,8 @@ if __name__ == '__main__':
 
     trembl_dat = TremblAnnotation(sql_db, table_name, uniprot_db, column_definition, uniprot_table, target_column)
     trembl_dat.run()
+
+
+class CathAnnotation(SqlBuilder, SqlSearch):
+    pass
+

@@ -1,7 +1,5 @@
 """
-Get Structure from 3D beacons
-Prioritize protein structure quality:
-PDB -> AlphaFold
+get sequence for structure acquisition and prediction.
 """
 
 import json
@@ -11,6 +9,7 @@ import threading
 from queue import Queue
 
 import requests
+from Bio import SeqIO
 
 
 def check_response(response):
@@ -21,21 +20,31 @@ def check_response(response):
         raise
 
 
-def sql_parse(sql_db):
+def get_target_name(target_fasta):
+    query_name = []
+    for seq_record in SeqIO.parse(target_fasta, "fasta"):
+        name = str(seq_record.id)
+        query_name.append(name)
+    return query_name
+
+
+def sql_parse(sql_db, query_name):
     connect = sqlite3.connect(sql_db)
     cursor = connect.cursor()
-    sql = "SELECT query_name, cazy_family, sprot_acc, trembl_acc FROM summary WHERE trembl100_acc !='' or sprot100_acc !=''"
+    sql = "SELECT query_name, cazy_family, sprot_acc, trembl_acc FROM results_summary " \
+          "WHERE (trembl_acc !='' or sprot_acc !='') AND cazy_family LIKE '%GH%'" \
+          "AND query_name in ({})".format(', '.join(['?'] * len(query_name)))
     cursor.execute("begin")
-    cursor.execute(sql)
+    cursor.execute(sql, query_name)
     sql_rows = cursor.fetchall()
     print('Get targets: ', len(sql_rows))
 
     dict_uniprot_ids = {}
     for i in sql_rows:
-        if i[1] != None:
-            dict_uniprot_ids[i[0] + '_sprot_' + i[1]] = i[1]
-        elif i[2] != None:
-            dict_uniprot_ids[i[0] + '_trembl_' + i[2]] = i[2]
+        if i[2]:
+            dict_uniprot_ids[i[0] + '_sprot_' + i[2]] = i[2]
+        elif i[3]:
+            dict_uniprot_ids[i[0] + '_trembl_' + i[3]] = i[3]
     print('SQL search complete!')
     return dict_uniprot_ids
 
@@ -70,7 +79,6 @@ class Producer(threading.Thread):
             r = requests.get(url=base_url + uniID + '.json', headers=headers)
             check_response(r)
             ret_json = json.loads(r.content)
-            print(ret_json)
 
             if ret_json['uniprot_entry']['sequence_length']:
                 sequence_length = ret_json['uniprot_entry']['sequence_length']
@@ -96,21 +104,11 @@ class Producer(threading.Thread):
 
                     if structure['model_url']:
                         cif_url = structure['summary']['model_url']
-                        print(cif_url)
-                        print(cif_url)
                         para_struct['cif_url'] = cif_url
                         self.struct_queue.put((file_name, cif_url))
                         print(file_name, cif_url)
                     else:
                         para_struct['cif_url'] = ''
-
-                    # Queue队列的put方法用于向Queue队列中放置元素，由于Queue是先进先出队列，所以先被Put的URL也就会被先get出来。
-
-                    # print(
-                    #     "Thread {thread} get {identifier}(resolution: {resolution}, sequence_length: {sequence_length}) url {cif_url} from {provider}".format(
-                    #         thread=thread, resolution=para_struct['resolution'], identifier=para_struct['identifier'],
-                    #         cif_url=para_struct['cif_url'], provider=para_struct['provider'],
-                    #         sequence_length=para_struct['sequence_length']))
                     break
 
                 elif provider == 'AlphaFold DB':
@@ -123,18 +121,11 @@ class Producer(threading.Thread):
 
                     if structure['summary']['model_url']:
                         cif_url = structure['summary']['model_url']
-                        print(cif_url)
                         para_struct['cif_url'] = cif_url
                         self.struct_queue.put((file_name, cif_url))
                         print(file_name, cif_url)
                     else:
                         para_struct['cif_url'] = ''
-
-                    # Queue队列的put方法用于向Queue队列中放置元素，由于Queue是先进先出队列，所以先被Put的URL也就会被先get出来。
-
-                    # print("get {identifier}(sequence_length: {sequence_length}) url {cif_url} from {provider}".format(
-                    #     identifier=para_struct['identifier'], cif_url=para_struct['cif_url'],
-                    #     provider=para_struct['provider'], sequence_length=para_struct['sequence_length']))
                     break
         except:
             print('url error')
@@ -147,14 +138,12 @@ class Consumer(threading.Thread):
         self.POLLING_INTERVAL = 1
         self.uniID_queue = uniID_queue
         self.struct_queue = struct_queue
-
     def run(self):
         while True:
             if self.uniID_queue.empty() and self.struct_queue.empty():
                 print('empty')
                 break
             file_name, url = self.struct_queue.get()
-            print(file_name, url)
             self.get_struct(file_name, url)
 
     def get_struct(self, file_name, url):
@@ -170,7 +159,7 @@ class Consumer(threading.Thread):
             check_response(cif)
             cif_str = cif.content.decode('utf-8')
             print('Downloading ', url)
-            dir_path = r'D:\subject\active\1-PyMulstruct\data\tibet\str1'
+            dir_path = r'D:\subject\active\1-qProtein\data\tibet\ident90'
             if not os.path.exists(dir_path):
                 os.mkdir(dir_path)
             file_path = os.path.join(dir_path, file_name)
@@ -183,11 +172,12 @@ class Consumer(threading.Thread):
             raise
 
 
-def main(sql_db):
-    # 用Queue构造一个大小为1000的线程安全的先进先出队列
-    uniID_queue = Queue(1000)
-    struct_queue = Queue(1000)
-    dict_uniprot_ids = sql_parse(sql_db)
+def main(sql_db, target_fasta):
+    # 用Queue构造一个大小为100000的线程安全的先进先出队列
+    uniID_queue = Queue(100000)
+    struct_queue = Queue(100000)
+    query_name = get_target_name(target_fasta)
+    dict_uniprot_ids = sql_parse(sql_db, query_name)
     # put uniID_queue
     for file_name, uniID in dict_uniprot_ids.items():
         print("Put queue ", uniID)
@@ -217,5 +207,6 @@ def main(sql_db):
 
 
 if __name__ == "__main__":
-    sql_db = r'D:\subject\active\1-PyMulstruct\data\tibet\summary.db'
-    main(sql_db)
+    sql_db = r'D:\subject\active\1-qProtein\data\tibet\qprotein_results.db'
+    target_fasta = r'D:\subject\active\1-qProtein\data\tibet\tibet_enzymes_segment_domain.fasta'
+    main(sql_db, target_fasta)
