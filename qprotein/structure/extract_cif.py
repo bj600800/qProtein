@@ -65,22 +65,20 @@ def edit_cif(start_res, atom_num, cif_dict):
     _entity_poly_seq, _ma_qa_metric_local
     """
     cif_id = list(cif_dict.keys())[0]
-    entry = {'id': cif_dict[cif_id]['_entry']}
+    entry = cif_dict[cif_id]['_entry']
     start_atom = atom_num[0]  # 967
     end_atom = atom_num[1]  # 4208
-    atom_site_key = ['group_PDB', 'id', 'type_symbol', 'label_atom_id', 'label_alt_id', 'label_comp_id',
-                     'label_asym_id', 'label_entity_id', 'label_seq_id', 'pdbx_PDB_ins_code', 'Cartn_x',
-                     'Cartn_y', 'Cartn_z', 'occupancy', 'B_iso_or_equiv', 'pdbx_formal_charge', 'auth_asym_id',
-                     'pdbx_PDB_model_num']
 
-    atom_site_dict = {k: v for k, v in cif_dict[cif_id]['_atom_site'].items() if k in atom_site_key}
+    atom_site_dict = {k: v for k, v in cif_dict[cif_id]['_atom_site'].items()}
     output_cif = {cif_id: {'_entry': entry, '_atom_site': atom_site_dict}}
-    for k, v in output_cif[cif_id]['_atom_site'].items():
-        if k in atom_site_key:
-            output_cif[cif_id]['_atom_site'][k] = v[start_atom:end_atom+1]
 
+    # extract structure
     for k, v in output_cif[cif_id]['_atom_site'].items():
-        if k == 'label_seq_id':
+        output_cif[cif_id]['_atom_site'][k] = v[start_atom:end_atom+1]
+
+    # reorder residue number
+    for k, v in output_cif[cif_id]['_atom_site'].items():
+        if k in ('label_seq_id', 'auth_seq_id'):
             output_cif[cif_id]['_atom_site'][k] = [int(i) - start_res + 1 for i in v]
 
     #     input()

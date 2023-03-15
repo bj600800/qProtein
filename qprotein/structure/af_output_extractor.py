@@ -52,8 +52,7 @@ class Extractor:
             src_file = open(pdb_path, 'rb')
             tar_file = open(os.path.join(self.output_dir, 'results', 'structures',
                                          os.path.basename(path) + '.pdb'
-                                         ), 'wb'
-                            )
+                                         ), 'wb')
             shutil.copyfileobj(src_file, tar_file)
 
     def get_len(self):
