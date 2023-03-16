@@ -32,8 +32,7 @@ def write_fasta(cif_dir, output_fasta):
             wf.write(seq + '\n')
 
 
-
 if __name__ == '__main__':
-    cif_dir = r'D:\subject\active\1-qProtein\data\tibet\ident90'
-    output_fasta = r'D:\subject\active\1-qProtein\data\tibet\ident90_from_cif.fasta'
+    cif_dir = r'D:\subject\active\1-qProtein\data\manure\ident90'
+    output_fasta = r'D:\subject\active\1-qProtein\data\manure\ident90_from_cif.fasta'
     write_fasta(cif_dir, output_fasta)

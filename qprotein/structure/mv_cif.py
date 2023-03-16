@@ -26,8 +26,7 @@ def target_cif(dir_path):
 def get_cazy_family(cursor, file_list):
     sql = 'SELECT query_name, cazy_family FROM results_summary WHERE query_name in ({})'\
         .format(', '.join(['?'] * len(file_list)))
-    query_list = ['_'.join(file.split('.')[0].split('_')[:6]) for file in file_list]
-
+    query_list = ['_'.join(file.split('.')[0].split('_')[:5]) for file in file_list]
     cursor.execute(sql, query_list)
     return_dat = cursor.fetchall()
     return return_dat
@@ -44,7 +43,7 @@ def move_cif(return_dat, dir_path, new_dir):
     file_list = os.listdir(dir_path)
     for file in file_list:
         for dat in return_dat:
-            if dat[0] == '_'.join(file.split('.')[0].split('_')[:6]):
+            if dat[0] == '_'.join(file.split('.')[0].split('_')[:5]):
                 src_file = os.path.join(dir_path, file)
                 src_file = open(src_file, 'rb')
                 family = dat[1].split('(')[0]
@@ -57,9 +56,9 @@ def move_cif(return_dat, dir_path, new_dir):
 
 
 if __name__ == '__main__':
-    sql_db = r'D:\subject\active\1-qProtein\data\tibet\qprotein_results.db'
-    dir_path = r'D:\subject\active\1-qProtein\data\tibet\ident90_segment'
-    new_dir = r'D:\subject\active\1-qProtein\data\tibet\ident90_new'
+    sql_db = r'D:\subject\active\1-qProtein\data\manure\qprotein_results.db'
+    dir_path = r'D:\subject\active\1-qProtein\data\manure\ident90_segment'
+    new_dir = r'D:\subject\active\1-qProtein\data\manure\ident90_segment_new'
     cursor = connect_sql(sql_db)
     file_list = target_cif(dir_path)
     return_dat = get_cazy_family(cursor, file_list)

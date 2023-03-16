@@ -74,8 +74,8 @@ class FastaSql(SqlBuilder):
 
 
 if __name__ == '__main__':
-    fasta_file = r'D:\subject\active\1-qProtein\data\tibet\qtp.fasta'
-    sql_db = r'D:\subject\active\1-qProtein\data\tibet\qprotein_db.db'
+    fasta_file = r'D:\subject\active\1-qProtein\data\manure\manure.fasta'
+    sql_db = r'D:\subject\active\1-qProtein\data\manure\qprotein_db.db'
     table_name = 'query_seq'
     column_definition = [("query_name", "TEXT"), ("sequence", "TEXT")]
     fasta_db = FastaSql(fasta_file, sql_db, table_name, column_definition)

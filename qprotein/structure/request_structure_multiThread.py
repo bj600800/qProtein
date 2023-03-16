@@ -76,7 +76,7 @@ class Producer(threading.Thread):
 
         para_struct = {}
         try:
-            r = requests.get(url=base_url + uniID + '.json', headers=headers)
+            r = requests.get(url=base_url + uniID + '.json?provider=alphafold', headers=headers)
             check_response(r)
             ret_json = json.loads(r.content)
 
@@ -89,6 +89,7 @@ class Producer(threading.Thread):
                 para_struct['provider'] = provider
 
                 if provider == 'PDBe':
+                    # TODO: remove
 
                     if structure['summary']['model_identifier']:
                         identifier = structure['summary']['model_identifier']
@@ -159,7 +160,7 @@ class Consumer(threading.Thread):
             check_response(cif)
             cif_str = cif.content.decode('utf-8')
             print('Downloading ', url)
-            dir_path = r'D:\subject\active\1-qProtein\data\tibet\ident90'
+            dir_path = r'D:\subject\active\1-qProtein\data\manure\ident90'
             if not os.path.exists(dir_path):
                 os.mkdir(dir_path)
             file_path = os.path.join(dir_path, file_name)
@@ -202,11 +203,16 @@ def main(sql_db, target_fasta):
         t.daemon = True
         t.start()
 
+    for t in consumer_thread_list:
+        t.join()
+
     for t in producer_thread_list:
         t.join()
 
 
+
+
 if __name__ == "__main__":
-    sql_db = r'D:\subject\active\1-qProtein\data\tibet\qprotein_results.db'
-    target_fasta = r'D:\subject\active\1-qProtein\data\tibet\tibet_enzymes_segment_domain.fasta'
+    sql_db = r'D:\subject\active\1-qProtein\data\manure\qprotein_results.db'
+    target_fasta = r'D:\subject\active\1-qProtein\data\manure\segment_domain.fasta'
     main(sql_db, target_fasta)

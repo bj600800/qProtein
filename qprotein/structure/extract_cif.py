@@ -86,15 +86,16 @@ def edit_cif(start_res, atom_num, cif_dict):
 
 
 def write_cif(cif_dict, write_path):
-    path = r'D:\subject\active\1-qProtein\data\tibet\ident90_segment'
     writer = CifFileWriter(write_path)
     writer.write(cif_dict)
 
 
 if __name__ == '__main__':
-    dir_path = r'D:\subject\active\1-qProtein\data\tibet\ident90'
-    write_dir = r'D:\subject\active\1-qProtein\data\tibet\ident90_segment'
-    cath_file = r'D:\subject\active\1-qProtein\data\tibet\ident90_from_cif.out'
+    dir_path = r'D:\subject\active\1-qProtein\data\manure\ident90'
+    write_dir = r'D:\subject\active\1-qProtein\data\manure\ident90_segment'
+    cath_file = r'D:\subject\active\1-qProtein\data\manure\ident90_from_cif.out'
+    if not os.path.exists(write_dir):
+        os.mkdir(write_dir)
     with open(cath_file, 'r') as rf:
         content = rf.readlines()
     for line in content:
@@ -102,14 +103,14 @@ if __name__ == '__main__':
         name = line[0]
         start_res = line[6]
         end_res = line[7]
-
-        for cif in os.listdir(dir_path):
-            cif_name = cif.split('.')[0]
-            cif_path = os.path.join(dir_path, cif)
-            if cif_name == name:
-                cif_dict = read_cif(cif_path)
-                atom_num = get_position_num(cif_dict, start_res, end_res)
-                cif_dict = edit_cif(int(start_res), atom_num, cif_dict)
-                write_path = os.path.join(write_dir, cif_name+'.cif')
-                print(write_path)
-                write_cif(cif_dict, write_path)
+        if int(line[3]) > 200:
+            for cif in os.listdir(dir_path):
+                cif_name = cif.split('.')[0]
+                cif_path = os.path.join(dir_path, cif)
+                if cif_name == name:
+                    cif_dict = read_cif(cif_path)
+                    atom_num = get_position_num(cif_dict, start_res, end_res)
+                    cif_dict = edit_cif(int(start_res), atom_num, cif_dict)
+                    write_path = os.path.join(write_dir, cif_name+'.cif')
+                    print(write_path)
+                    write_cif(cif_dict, write_path)

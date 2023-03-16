@@ -46,6 +46,7 @@ def domain_segmentation(fasta, blastp_output):
         name = record[0]
         for hit in blastp_output:
             if hit['query_name'] == name:
+                print(name)
                 seq = record[1][int(hit['start_query']): int(hit['end_query']) + 1]
                 _fasta = [name, seq]
                 segment_fasta.append(_fasta)
@@ -67,9 +68,9 @@ def parse_cath_sql():
 
 
 def main():
-    fasta_file = r'D:\subject\active\1-qProtein\data\tibet\tibet_target_seq.fasta'
-    cath_output = r'D:\subject\active\1-qProtein\data\tibet\tibet_cath_enzymes_filter.out'
-    segment_domain_output_file = r'D:\subject\active\1-qProtein\data\tibet\tibet_enzymes_segment_domain.fasta'
+    fasta_file = r'D:\subject\active\1-qProtein\data\manure\manure.fasta'
+    cath_output = r'D:\subject\active\1-qProtein\data\manure\cath_uniprot_ident90.out'
+    segment_domain_output_file = r'D:\subject\active\1-qProtein\data\manure\segment_domain.fasta'
     blastp_output = read_blastp_output(cath_output)
     fasta = read_fasta(fasta_file)
     segment_fasta = domain_segmentation(fasta, blastp_output)

@@ -52,17 +52,17 @@ def fetch_sequence(sql_fasta):
 
 
 if __name__ == '__main__':
-    sql_db = r'D:\subject\active\1-qProtein\data\tibet\qprotein_results.db'
-    sql_fasta = r'D:\subject\active\1-qProtein\data\tibet\qprotein_db.db'
+    sql_db = r'D:\subject\active\1-qProtein\data\manure\qprotein_results.db'
+    sql_fasta = r'D:\subject\active\1-qProtein\data\manure\qprotein_db.db'
     column_key = [('cazy_family', 'GH'), ('cazy_family', 'GT'), ('cazy_family', 'AA'),
-                  ('cazy_family', 'PL'), ('cazy_family', 'CE'), ('merops_family', '')]
+                  ('cazy_family', 'PL'), ('cazy_family', 'CE')]
     protein = []
     for column, key_word in column_key:
         result_list = fetch_target(sql_db, column, key_word)
         target_protein = fetch_sequence_of_target(sql_fasta, result_list)
         protein.extend(target_protein)
 
-    with open(r'D:\subject\active\1-qProtein\data\tibet\tibet_target_ident90.fasta', 'w') as wf:
+    with open(r'D:\subject\active\1-qProtein\data\manure\uniprot_ident90.fasta', 'w') as wf:
         for i in protein:
             wf.write('>'+i[0]+'\n')
             wf.write(i[1]+'\n')
