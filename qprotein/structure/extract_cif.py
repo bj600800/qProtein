@@ -8,6 +8,7 @@
 # ------------------------------------------------------------------------------
 """
 import os
+from numpy import mean
 
 from pdbecif.mmcif_tools import MMCIF2Dict
 from pdbecif.mmcif_io import CifFileWriter
@@ -65,6 +66,9 @@ def edit_cif(start_res, atom_num, cif_dict):
     _entity_poly_seq, _ma_qa_metric_local
     """
     cif_id = list(cif_dict.keys())[0]
+    mean_bfactor = mean([float(i) for i in cif_dict[cif_id]['_atom_site']['B_iso_or_equiv']])
+    if mean_bfactor < 90:
+        return
     entry = cif_dict[cif_id]['_entry']
     start_atom = atom_num[0]  # 967
     end_atom = atom_num[1]  # 4208
@@ -80,31 +84,30 @@ def edit_cif(start_res, atom_num, cif_dict):
     for k, v in output_cif[cif_id]['_atom_site'].items():
         if k in ('label_seq_id', 'auth_seq_id'):
             output_cif[cif_id]['_atom_site'][k] = [int(i) - start_res + 1 for i in v]
-
-    #     input()
     return output_cif
 
 
 def write_cif(cif_dict, write_path):
-    writer = CifFileWriter(write_path)
-    writer.write(cif_dict)
+    if cif_dict:
+        writer = CifFileWriter(write_path)
+        writer.write(cif_dict)
 
 
 if __name__ == '__main__':
-    dir_path = r'D:\subject\active\1-qProtein\data\manure\ident90'
-    write_dir = r'D:\subject\active\1-qProtein\data\manure\ident90_segment'
-    cath_file = r'D:\subject\active\1-qProtein\data\manure\ident90_from_cif.out'
+    dir_path = r'D:\subject\active\1-qProtein\data\tibet\ident90'
+    write_dir = r'D:\subject\active\1-qProtein\data\tibet\ident90_segment'
+    cath_file = r'D:\subject\active\1-qProtein\data\tibet\ident90_from_cif.out'
     if not os.path.exists(write_dir):
         os.mkdir(write_dir)
     with open(cath_file, 'r') as rf:
         content = rf.readlines()
-    for line in content:
-        line = line.split('\t')
-        name = line[0]
-        start_res = line[6]
-        end_res = line[7]
-        if int(line[3]) > 200:
-            for cif in os.listdir(dir_path):
+    for cif in os.listdir(dir_path):
+        for line in content:
+            line = line.split('\t')
+            name = line[0]
+            start_res = line[6]
+            end_res = line[7]
+            if int(line[3]) > 280:
                 cif_name = cif.split('.')[0]
                 cif_path = os.path.join(dir_path, cif)
                 if cif_name == name:
