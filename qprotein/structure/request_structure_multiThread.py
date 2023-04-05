@@ -31,8 +31,11 @@ def get_target_name(target_fasta):
 def sql_parse(sql_db, query_name):
     connect = sqlite3.connect(sql_db)
     cursor = connect.cursor()
+    # sql = "SELECT query_name, cazy_family, sprot_acc, trembl_acc FROM results_summary " \
+    #       "WHERE (trembl_acc !='' or sprot_acc !='') AND cazy_family LIKE '%GH%'" \
+    #       "AND query_name in ({})".format(', '.join(['?'] * len(query_name)))
     sql = "SELECT query_name, cazy_family, sprot_acc, trembl_acc FROM results_summary " \
-          "WHERE (trembl_acc !='' or sprot_acc !='') AND cazy_family LIKE '%GH%'" \
+          "WHERE trembl_acc !='' or sprot_acc !=''" \
           "AND query_name in ({})".format(', '.join(['?'] * len(query_name)))
     cursor.execute("begin")
     cursor.execute(sql, query_name)
@@ -160,7 +163,7 @@ class Consumer(threading.Thread):
             check_response(cif)
             cif_str = cif.content.decode('utf-8')
             print('Downloading ', url)
-            dir_path = r'D:\subject\active\1-qProtein\data\manure\ident90'
+            dir_path = r'D:\subject\active\1-qProtein\data\tibet\structure90'
             if not os.path.exists(dir_path):
                 os.mkdir(dir_path)
             file_path = os.path.join(dir_path, file_name)
@@ -174,9 +177,9 @@ class Consumer(threading.Thread):
 
 
 def main(sql_db, target_fasta):
-    # 用Queue构造一个大小为100000的线程安全的先进先出队列
-    uniID_queue = Queue(100000)
-    struct_queue = Queue(100000)
+    #TODO 用Queue构造一个大小为1000000的线程安全的先进先出队列,队列容量一定要大于元素数量
+    uniID_queue = Queue(1000000)
+    struct_queue = Queue(1000000)
     query_name = get_target_name(target_fasta)
     dict_uniprot_ids = sql_parse(sql_db, query_name)
     # put uniID_queue
@@ -213,6 +216,6 @@ def main(sql_db, target_fasta):
 
 
 if __name__ == "__main__":
-    sql_db = r'D:\subject\active\1-qProtein\data\manure\qprotein_results.db'
-    target_fasta = r'D:\subject\active\1-qProtein\data\manure\segment_domain.fasta'
+    sql_db = r'D:\subject\active\1-qProtein\data\tibet\qprotein_results.db'
+    target_fasta = r'D:\subject\active\1-qProtein\data\tibet\tibet_target_ident90.fasta'
     main(sql_db, target_fasta)
