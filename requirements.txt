@@ -1,9 +1,0 @@
-numpy~=1.23.5
-requests~=2.28.1
-pdb2pqr~=3.6.1
-propka~=3.5.0
-pandas~=1.5.3
-setuptools~=65.6.3
-pdbecif~=1.5
-freesasa~=2.2.0.post3
-tqdm~=4.65.0
