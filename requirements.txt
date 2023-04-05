@@ -1,0 +1,8 @@
+requests
+biopython
+pdb2pqr
+tqdm
+freesasa
+pandas
+matplotlib
+RamachanDraw
