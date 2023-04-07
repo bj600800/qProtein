@@ -45,7 +45,7 @@ def insert_sprot(dmnd_output, summary_sql_path, summary_table_name):
     try:
         column_definition = [('query_name', 'TEXT'), ('sprot_acc', 'TEXT'),
                              ('sprot_start', 'TEXT'), ('sprot_end', 'TEXT')]
-        dmnd = annotation_processer.SprotDmnd(dmnd_output, summary_sql_path, summary_table_name, column_definition, 'sprot')
+        dmnd = annotation_processer.SprotDmnd(dmnd_output, summary_sql_path, column_definition, 'sprot')
         dmnd.run()
     except IOError:
         logger.debug('No sprot_dmnd_output file!')
@@ -53,14 +53,15 @@ def insert_sprot(dmnd_output, summary_sql_path, summary_table_name):
 
 def annotate_sprot(uniprot_db, uniprot_table_name, summary_sql_path, summary_table_name):
     # here create the sprot_acc anain, that is wrong.
+    search_column = "sprot_acc"
     try:
         column_definition = [('sprot_acc', 'TEXT'), ('sprot_name', 'TEXT'), ('sprot_ec_number', 'TEXT'),
                              ('sprot_go_component', 'TEXT'), ('sprot_go_process', 'TEXT'), ('sprot_go_function', 'TEXT'),
                              ('sprot_interpro', 'TEXT'), ('sprot_pfam', 'TEXT')]
 
-        sprot_dat = annotation_processer.SprotAnnotation(uniprot_db, uniprot_table_name, summary_sql_path,
-                                                         summary_table_name, 'sprot_acc', column_definition
-                                                         )
+        sprot_dat = annotation_processer.SprotAnnotation(uniprot_db=uniprot_db, uniprot_table_name=uniprot_table_name,
+                                                         summary_sql_path=summary_sql_path, search_column=search_column,
+                                                         column_definition=column_definition)
         sprot_dat.run()
     except Exception as e:
         logger.debug(e)
@@ -71,9 +72,7 @@ def insert_trembl(dmnd_output, summary_sql_path, summary_table_name):
         column_definition = [('query_name', 'TEXT'), ('trembl_acc', 'TEXT'),
                              ('trembl_start', 'TEXT'), ('trembl_end', 'TEXT')]
 
-        trembl = annotation_processer.TremblDmnd(dmnd_output, summary_sql_path, summary_table_name, column_definition,
-                                                 'trembl'
-                                                 )
+        trembl = annotation_processer.TremblDmnd(dmnd_output, summary_sql_path, column_definition, 'trembl')
         trembl.run()
     except IOError:
         logger.debug('No trembl_dmnd_output file!')
@@ -85,10 +84,9 @@ def annotate_trembl(summary_sql_path, uniprot_db, summary_table_name):
                              ('trembl_go_component', 'TEXT'), ('trembl_go_process', 'TEXT'), ('trembl_go_function', 'TEXT'),
                              ('trembl_interpro', 'TEXT'), ('trembl_pfam', 'TEXT')]
 
-        trembl_dat = annotation_processer.TremblAnnotation(summary_sql_path, summary_table_name, uniprot_db,
-                                                           column_definition, 'trembl_dat',
-                                                           'trembl_acc'
-                                                           )
+        trembl_dat = annotation_processer.TremblAnnotation(summary_sql_path=summary_sql_path, uniprot_db=uniprot_db,
+                                                           column_definition=column_definition, uniprot_table='trembl_dat',
+                                                           search_column='trembl_acc')
         trembl_dat.run()
     except Exception as e:
         logger.error('Got an exception!', e)
@@ -114,10 +112,10 @@ def run():
     uniprot_table_name = 'sprot_dat'
     annotate_sprot(uniprot_db, uniprot_table_name, summary_sql_path, summary_table_name)
 
-    # trembl_dmnd_output = r'D:\subject\active\1-qProtein\data\tibet\trembl_90.tab'
-    # insert_trembl(trembl_dmnd_output, summary_sql_path, summary_table_name)
-    #
-    # annotate_trembl(summary_sql_path, uniprot_db, summary_table_name)
+    trembl_dmnd_output = r'D:\subject\active\1-qProtein\data\tibet\trembl_90.tab'
+    insert_trembl(sprot_dmnd_output, summary_sql_path, summary_table_name)
+
+    annotate_trembl(summary_sql_path, uniprot_db, summary_table_name)
 
 
 run()

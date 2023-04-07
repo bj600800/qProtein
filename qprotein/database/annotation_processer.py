@@ -74,16 +74,11 @@ class CazyAnalysis(SqlBuilder):
         logger.info(f"Total records:" + str(self.total_records))
 
     def run(self):
+        logger.info(f"Parse cazy output and insert records")
         columns = [i[0] for i in self.column_definition]
         cursor = self.connect_sql(sql_db=self.sql_path)
-
-        logger.info(f"Add columns {', '.join(columns)} into the table results_summary")
         self.add_column(cursor=cursor, table_name='results_summary', column_definition=self.column_definition)
-
-        logger.info(f"Parse cazy output and insert records")
         self.parse_cazy(cursor=cursor)
-
-        logger.info(f'Create index for cazy')
         self.create_index(cursor=cursor, columns=columns)
 
 
@@ -132,26 +127,20 @@ class MeropsAnalysis(SqlBuilder, SqlSearch):
         logger.info(f"Total records:" + str(self.total_records))
 
     def run(self):
+        logger.info(f"Parse Merops output and insert records")
         columns = [i[0] for i in self.column_definition]
         cursor = self.connect_sql(sql_db=self.summary_sql_path)
-
-        logger.info(f"Add columns {', '.join(columns)} into the table results_summary")
         self.add_column(cursor=cursor, table_name="results_summary", column_definition=self.column_definition)
-
-        logger.info(f"Parse Merops output and insert records")
         self.parse_merops(cursor=cursor, columns=columns)
-
-        logger.info(f'Create index for merops')
         self.create_index(cursor=cursor, columns=columns)
 
 
 class SprotDmnd(SqlBuilder, SqlSearch):
-    def __init__(self, dmnd_output, summary_sql_path, table_name, column_definition, idx_name_prefix):
-        super().__init__(summary_sql_path, table_name, column_definition)
+    def __init__(self, dmnd_output, summary_sql_path, column_definition, idx_name_prefix):
+        super().__init__(sql_db=summary_sql_path, table_name="results_summary", column_definition=column_definition)
 
         self.dmnd_output = dmnd_output
         self.summary_sql_path = summary_sql_path
-        self.table_name = table_name
         self.column_definition = column_definition
         self.idx_name_prefix = idx_name_prefix
 
@@ -174,48 +163,37 @@ class SprotDmnd(SqlBuilder, SqlSearch):
         self.total_records += 1
 
     def parse_dmnd(self, cursor, columns):
-        for line in self.read_text_generator(self.dmnd_output, header=False):
+        for line in self.read_text_generator(filename=self.dmnd_output, header=False):
             line = line.split('\t')
             if self.record_counter == 500000:
-                logger.info(f"Insert 500000 records into {self.table_name}, total records:" + str(self.total_records))
-                self.insert_update_columns(cursor, self.table_name, columns, self.records)
-
+                logger.info(f"Insert 500000 records. Total records:" + str(self.total_records))
+                self.insert_update_columns(cursor=cursor, table_name="results_summary", columns=columns, records=self.records)
                 self.records = []
                 self.record_counter = 0
             else:
                 self.format_dmnd(line)
 
         if self.record_counter > 0:
-            logger.info(f"Insert {self.record_counter} records into {self.table_name}")
-            self.insert_update_columns(cursor, self.table_name, columns, self.records)
+            logger.info(f"Insert {self.record_counter} records")
+            self.insert_update_columns(cursor=cursor, table_name="results_summary", columns=columns, records=self.records)
 
         logger.info(f"Total records:" + str(self.total_records))
 
     def run(self):
+        logger.info(f"Parse {self.idx_name_prefix} diamond outputs and insert records")
         columns = [i[0] for i in self.column_definition]
-
-        logger.info(f"Connect SQL table: {self.table_name} in {self.summary_sql_path}")
-        cursor = self.connect_sql(self.summary_sql_path)
-
-        logger.info(f"Add columns {', '.join(columns)} into table {self.table_name}")
-        self.add_column(cursor, self.table_name, self.column_definition)
-
-        logger.info(f"!! Parse {self.idx_name_prefix} and insert records into {self.table_name}")
-        self.parse_dmnd(cursor, columns)
-
-        logger.info(f'Create index for SQL table: {self.table_name}')
-        self.create_index(cursor, columns)
+        cursor = self.connect_sql(sql_db=self.summary_sql_path)
+        self.add_column(cursor=cursor, table_name="results_summary", column_definition=self.column_definition)
+        self.parse_dmnd(cursor=cursor, columns=columns)
+        self.create_index(cursor=cursor, columns=columns)
 
 
 class SprotAnnotation(SqlBuilder, SqlSearch):
-    def __init__(self, uniprot_db, uniprot_table_name, summary_sql_path, summary_table_name, search_column,
-                 column_definition
-                 ):
-        super().__init__(sql_db=summary_sql_path, table_name=summary_table_name, column_definition=column_definition)
+    def __init__(self, uniprot_db, uniprot_table_name, summary_sql_path, search_column, column_definition):
+        super().__init__(sql_db=summary_sql_path, table_name="results_summary", column_definition=column_definition)
 
         self.summary_sql_path = summary_sql_path
         self.uniprot_db = uniprot_db
-        self.table_name = summary_table_name
         self.column_definition = column_definition
         self.uniprot_table = uniprot_table_name
         self.target_column = search_column
@@ -227,12 +205,12 @@ class SprotAnnotation(SqlBuilder, SqlSearch):
     def get_candidates(self):
         cursor = self.connect_sql(self.summary_sql_path)
         sql_cmd = f"SELECT {self.target_column} FROM results_summary WHERE {self.target_column} != ''"
-        acc = [i[0] for i in self.fetch_results(cursor, sql_cmd)]
+        acc = [i[0] for i in self.fetch_results(cursor=cursor, sql_cmd=sql_cmd)]
         return acc
 
     def get_uniprot_dat(self, uniprot_table_name):
         acc = self.get_candidates()
-        uniprot_cursor = self.connect_sql(self.uniprot_db)
+        uniprot_cursor = self.connect_sql(sql_db=self.uniprot_db)
         # prepare
         batch_size = 100000
         uniprot_dat = []
@@ -266,41 +244,35 @@ class SprotAnnotation(SqlBuilder, SqlSearch):
         uniprot_dat = self.get_uniprot_dat(self.uniprot_table)
         for i in uniprot_dat:
             if self.record_counter == 500000:
-                self.update_many_columns(cursor, self.table_name, columns, self.records)
-                logger.info(f"Insert 500000 records into {self.table_name}, total records:" + str(self.total_records))
+                self.update_many_columns(cursor=cursor, table_name="results_summary",
+                                         columns=columns, records=self.records)
+                logger.info(f"Insert 500000 records. Total records:" + str(self.total_records))
 
                 self.records = []
                 self.record_counter = 0
             else:
                 self.format_records(i)
         if self.record_counter > 0:
-            logger.info(f"Update {self.record_counter} records into {self.table_name}")
-            self.update_many_columns(cursor, self.table_name, columns, self.records)
+            self.update_many_columns(cursor=cursor, table_name="results_summary", columns=columns, records=self.records)
+            logger.info(f"Update {self.record_counter} records")
 
     def run(self):
-        logger.info(f"Connect SQL table: {self.table_name} in {self.summary_sql_path}")
+        logger.info(f"Annotate based on sprot accession")
         columns = [i[0] for i in self.column_definition]
-
         cursor = self.connect_sql(self.summary_sql_path)
-
-        logger.info(f"Add columns {', '.join(columns)} into table {self.table_name}")
         # annotation should not add accession column
         self.add_column(cursor, self.table_name, self.column_definition[1:])
-
-        logger.info(f"!! Parse sprot: update and insert records into {self.table_name}")
         self.parse_uniprot(cursor, columns)
-
-        logger.info(f'Create index for SQL table: {self.table_name}')
         self.create_index(cursor, columns)
 
 
 #
 class TremblDmnd(SprotDmnd):
-    def __init__(self, dmnd_output, summary_sql_path, table_name, column_definition, idx_name_prefix):
-        super().__init__(dmnd_output, summary_sql_path, table_name, column_definition, idx_name_prefix)
+    def __init__(self, dmnd_output, summary_sql_path, column_definition, idx_name_prefix):
+        super().__init__(dmnd_output=dmnd_output, summary_sql_path=summary_sql_path,
+                         column_definition=column_definition, idx_name_prefix=idx_name_prefix)
         self.dmnd_output = dmnd_output
         self.summary_sql_path = summary_sql_path
-        self.table_name = table_name
         self.column_definition = column_definition
         self.idx_name_prefix = idx_name_prefix
 
@@ -317,15 +289,15 @@ class TremblDmnd(SprotDmnd):
 
 
 class TremblAnnotation(SprotAnnotation):
-    def __init__(self, summary_sql_path, table_name, uniprot_db, column_definition, uniprot_table, target_column):
-        super().__init__(summary_sql_path, table_name, uniprot_db, column_definition, uniprot_table, target_column)
+    def __init__(self, summary_sql_path, uniprot_db, column_definition, uniprot_table, search_column):
+        super().__init__(summary_sql_path=summary_sql_path, uniprot_table_name="results_summary",
+                         uniprot_db=uniprot_db, search_column=search_column, column_definition=column_definition)
 
         self.summary_sql_path = summary_sql_path
         self.uniprot_db = uniprot_db
-        self.table_name = table_name
         self.column_definition = column_definition
         self.uniprot_table = uniprot_table
-        self.target_column = target_column
+        self.target_column = search_column
 
         self.record_items = {column_name[0]: '' for column_name in self.column_definition}
         self.record_counter = 0
@@ -342,16 +314,9 @@ class TremblAnnotation(SprotAnnotation):
         self.record_items['trembl_pfam'] = dat[7]
 
     def run(self):
+        logger.info(f"Annotate based on trembl accession")
         columns = [i[0] for i in self.column_definition]
-        logger.info(f"Connect SQL table: {self.table_name} in {self.summary_sql_path}")
-        cursor = self.connect_sql(self.summary_sql_path)
-
-        logger.info(f"Add columns {', '.join(columns)} into table {self.table_name}")
-        self.add_column(cursor, self.table_name, self.column_definition[1:])
-
-        logger.info(f"!! Parse Trembl update and insert records into {self.table_name}")
-        self.parse_uniprot(cursor, columns)
-
-        logger.info(f'Create index for SQL table: {self.table_name}')
-
-        self.create_index(cursor, columns)
+        cursor = self.connect_sql(sql_db=self.summary_sql_path)
+        self.add_column(cursor=cursor, table_name="results_summary", column_definition=self.column_definition[1:])
+        self.parse_uniprot(cursor=cursor, columns=columns)
+        self.create_index(cursor=cursor, columns=columns)
