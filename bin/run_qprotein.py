@@ -2,8 +2,9 @@
 # ------------------------------------------------------------------------------
 # Author:    Zhixin Dou
 # Email:     bj600800@gmail.com
-# DATE:      2023/03/06
+# DATE:      2023/04/06
 
-# Description: main function to process and manage.
+# Description: main function
 # ------------------------------------------------------------------------------
 """
+

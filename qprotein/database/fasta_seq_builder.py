@@ -4,7 +4,7 @@
 # Email:     bj600800@gmail.com
 # DATE:      2023/03/13
 
-# Description: 
+# Description: create sql database for fasta sequences
 # ------------------------------------------------------------------------------
 """
 
@@ -58,11 +58,11 @@ class FastaSql(SqlBuilder):
     def run(self):
         columns = [i[0] for i in self.column_definition]
 
-        logger.info(f"Start to create SQL table: {self.table_name} in SQL file {self.sql_db}")
+        logger.info(f"Start to create SQL table: {self.table_name} in SQL file {self.sql_path}")
 
         logger.info(f"Create SQL table: {self.table_name}")
         sql = f"CREATE TABLE {self.table_name} (query_name TEXT PRIMARY KEY, sequence TEXT)"
-        cursor = self.create_table(self.table_name, self.sql_db, sql)
+        cursor = self.create_table(self.table_name, self.sql_path, sql)
 
         logger.info(f"Parse file and insert records into {self.table_name}")
         self.parse_fasta(cursor)

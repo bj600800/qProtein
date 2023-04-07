@@ -4,7 +4,8 @@
 # Email:     bj600800@gmail.com
 # DATE:      2023/03/06
 
-# Description: Copyright: Adapted from 'https://www.uniprot.org/help/id_mapping'
+# Description: obsoleted
+  Copyright: Adapted from 'https://www.uniprot.org/help/id_mapping'
 # ------------------------------------------------------------------------------
 """
 

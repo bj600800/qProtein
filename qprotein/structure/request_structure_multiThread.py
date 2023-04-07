@@ -32,10 +32,10 @@ def sql_parse(sql_db, query_name):
     connect = sqlite3.connect(sql_db)
     cursor = connect.cursor()
     # sql = "SELECT query_name, cazy_family, sprot_acc, trembl_acc FROM results_summary " \
-    #       "WHERE (trembl_acc !='' or sprot_acc !='') AND cazy_family LIKE '%GH%'" \
+    #       "WHERE trembl_acc !='' or sprot_acc !=''" \
     #       "AND query_name in ({})".format(', '.join(['?'] * len(query_name)))
-    sql = "SELECT query_name, cazy_family, sprot_acc, trembl_acc FROM results_summary " \
-          "WHERE trembl_acc !='' or sprot_acc !=''" \
+    sql = "SELECT query_name, cazy_family, sprot_acc FROM results_summary " \
+          "WHERE sprot_acc !=''" \
           "AND query_name in ({})".format(', '.join(['?'] * len(query_name)))
     cursor.execute("begin")
     cursor.execute(sql, query_name)
@@ -46,8 +46,8 @@ def sql_parse(sql_db, query_name):
     for i in sql_rows:
         if i[2]:
             dict_uniprot_ids[i[0] + '_sprot_' + i[2]] = i[2]
-        elif i[3]:
-            dict_uniprot_ids[i[0] + '_trembl_' + i[3]] = i[3]
+        # elif i[3]:
+        #     dict_uniprot_ids[i[0] + '_trembl_' + i[3]] = i[3]
     print('SQL search complete!')
     return dict_uniprot_ids
 
@@ -137,11 +137,12 @@ class Producer(threading.Thread):
 
 
 class Consumer(threading.Thread):
-    def __init__(self, uniID_queue, struct_queue):
+    def __init__(self, uniID_queue, struct_queue, dir_path):
         super(Consumer, self).__init__()
         self.POLLING_INTERVAL = 1
         self.uniID_queue = uniID_queue
         self.struct_queue = struct_queue
+        self.dir_path = dir_path
     def run(self):
         while True:
             if self.uniID_queue.empty() and self.struct_queue.empty():
@@ -163,20 +164,19 @@ class Consumer(threading.Thread):
             check_response(cif)
             cif_str = cif.content.decode('utf-8')
             print('Downloading ', url)
-            dir_path = r'D:\subject\active\1-qProtein\data\tibet\structure90'
-            if not os.path.exists(dir_path):
-                os.mkdir(dir_path)
-            file_path = os.path.join(dir_path, file_name)
+
+            if not os.path.exists(self.dir_path):
+                os.mkdir(self.dir_path)
+            file_path = os.path.join(self.dir_path, file_name)
             with open(file_path + '.cif', 'w') as f:
                 f.writelines(cif_str)
-
 
         except requests.HTTPError:
             print('Error: ', file_name)
             raise
 
 
-def main(sql_db, target_fasta):
+def main(sql_db, target_fasta, dir_path):
     #TODO 用Queue构造一个大小为1000000的线程安全的先进先出队列,队列容量一定要大于元素数量
     uniID_queue = Queue(1000000)
     struct_queue = Queue(1000000)
@@ -200,7 +200,7 @@ def main(sql_db, target_fasta):
     consumer_thread = 5
     consumer_thread_list = []
     for i in range(consumer_thread):
-        t = Consumer(uniID_queue=uniID_queue, struct_queue=struct_queue)
+        t = Consumer(uniID_queue=uniID_queue, struct_queue=struct_queue, dir_path=dir_path)
         print(t)
         consumer_thread_list.append(t)
         t.daemon = True
@@ -217,5 +217,6 @@ def main(sql_db, target_fasta):
 
 if __name__ == "__main__":
     sql_db = r'D:\subject\active\1-qProtein\data\tibet\qprotein_results.db'
-    target_fasta = r'D:\subject\active\1-qProtein\data\tibet\tibet_target_ident90.fasta'
-    main(sql_db, target_fasta)
+    target_fasta = r'D:\subject\active\1-qProtein\data\tibet\sprot90_90.fasta'
+    dir_path = r'D:\subject\active\1-qProtein\data\tibet\sprot90_90'
+    main(sql_db, target_fasta, dir_path)

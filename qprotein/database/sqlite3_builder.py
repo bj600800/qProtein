@@ -7,7 +7,8 @@
 # Description: Base class for SQL builder class
 # ------------------------------------------------------------------------------
 """
-
+import sys
+sys.path.insert(0, '../')
 from abc import abstractmethod
 import sqlite3
 import gzip
@@ -19,7 +20,7 @@ logger = logger.setup_log(name=__name__)
 class SqlBuilder(object):
 
     def __init__(self, sql_db, table_name, column_definition):
-        self.sql_db = sql_db
+        self.sql_path = sql_db
         self.table_name = table_name
         self.column_definition = column_definition
 

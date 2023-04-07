@@ -70,8 +70,8 @@ def edit_cif(start_res, atom_num, cif_dict):
     if mean_bfactor < 90:
         return
     entry = cif_dict[cif_id]['_entry']
-    start_atom = atom_num[0]  # 967
-    end_atom = atom_num[1]  # 4208
+    start_atom = atom_num[0]
+    end_atom = atom_num[1]
 
     atom_site_dict = {k: v for k, v in cif_dict[cif_id]['_atom_site'].items()}
     output_cif = {cif_id: {'_entry': entry, '_atom_site': atom_site_dict}}
@@ -94,8 +94,8 @@ def write_cif(cif_dict, write_path):
 
 
 if __name__ == '__main__':
-    dir_path = r'D:\subject\active\1-qProtein\data\tibet\ident90'
-    write_dir = r'D:\subject\active\1-qProtein\data\tibet\ident90_segment'
+    dir_path = r'D:\subject\active\1-qProtein\data\tibet\sprot90_90'
+    write_dir = r'D:\subject\active\1-qProtein\data\tibet\sprot90_90_segment'
     cath_file = r'D:\subject\active\1-qProtein\data\tibet\ident90_from_cif.out'
     if not os.path.exists(write_dir):
         os.mkdir(write_dir)

@@ -121,9 +121,9 @@ class UniprotSql(SqlBuilder):
         logger.info(f"Total records:" + str(self.total_records))
 
     def run(self):
-        logger.info(f"Start to create SQL table: {self.table_name} in SQL file {self.sql_db}")
+        logger.info(f"Start to create SQL table: {self.table_name} in SQL file {self.sql_path}")
         logger.info(f"Create SQL table: {self.table_name}")
-        cursor = self.create_table(self.table_name, self.sql_db, self.column_definition)
+        cursor = self.create_table(self.table_name, self.sql_path, self.column_definition)
 
         logger.info(f"Parse uniprot dat file and insert records into {self.table_name}")
         self.parse_dat(cursor)

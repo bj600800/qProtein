@@ -1,0 +1,9 @@
+numpy
+requests
+pdb2pqr
+propka
+pandas
+setuptools
+pdbecif
+freesasa
+tqdm

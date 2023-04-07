@@ -4,7 +4,7 @@
 # Email:     bj600800@gmail.com
 # DATE:      2023/03/06
 
-# Description: Base class for SQL builder class, subclass AFmeta, uniprot
+# Description: Base class for SQL searcher class
 # ------------------------------------------------------------------------------
 """
 
@@ -31,6 +31,12 @@ class SqlSearch(object):
     @staticmethod
     def fetch_results(cursor, sql_cmd):
         cursor.execute(sql_cmd)
+        results_list = cursor.fetchall()
+        return results_list
+
+    @staticmethod
+    def fetch_many_results(cursor, sql_cmd, search_targets):
+        cursor.execute(sql_cmd, search_targets)
         results_list = cursor.fetchall()
         return results_list
 

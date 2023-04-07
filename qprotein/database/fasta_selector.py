@@ -4,7 +4,7 @@
 # Email:     bj600800@gmail.com
 # DATE:      2023/03/12
 
-# Description: Fetch target sequences from query_seq database with or without qprotein annotation.
+# Description: filter the desired query targets, which have structure or not.
 # ------------------------------------------------------------------------------
 """
 
@@ -17,9 +17,9 @@ def fetch_target(sql_db, column, key_word):
              available: {query_name__family: {sprot_acc: sequence}, {trembl_acc: sequence}}}
     """
     cursor = SqlSearch.connect_sql(sql_db)
-    sql = f"SELECT query_name FROM results_summary WHERE {column} LIKE '%{key_word}%'"
+    # sql = f"SELECT query_name FROM results_summary WHERE {column} LIKE '%{key_word}%'"
+    sql = f"SELECT query_name FROM results_summary WHERE sprot_acc != ''"
     target_name = [i[0] for i in SqlSearch.fetch_results(cursor, sql)]
-
     return target_name
 
 
@@ -52,8 +52,8 @@ def fetch_sequence(sql_fasta):
 
 
 if __name__ == '__main__':
-    sql_db = r'D:\subject\active\1-qProtein\data\manure\qprotein_results.db'
-    sql_fasta = r'D:\subject\active\1-qProtein\data\manure\qprotein_db.db'
+    sql_db = r'D:\subject\active\1-qProtein\data\tibet\qprotein_results.db'
+    sql_fasta = r'D:\subject\active\1-qProtein\data\qprotein_db.db'
     column_key = [('cazy_family', 'GH'), ('cazy_family', 'GT'), ('cazy_family', 'AA'),
                   ('cazy_family', 'PL'), ('cazy_family', 'CE')]
     protein = []
@@ -62,7 +62,7 @@ if __name__ == '__main__':
         target_protein = fetch_sequence_of_target(sql_fasta, result_list)
         protein.extend(target_protein)
 
-    with open(r'D:\subject\active\1-qProtein\data\manure\uniprot_ident90.fasta', 'w') as wf:
+    with open(r'D:\subject\active\1-qProtein\data\tibet\sprot90_90.fasta', 'w') as wf:
         for i in protein:
             wf.write('>'+i[0]+'\n')
             wf.write(i[1]+'\n')

@@ -4,6 +4,7 @@
 # Email:     bj600800@gmail.com
 # DATE:      2023/03/06
 
-# Description: Perform database builder
+# Description: main function for building sql database
 # ------------------------------------------------------------------------------
 """
+

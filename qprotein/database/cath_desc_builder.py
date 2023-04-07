@@ -4,7 +4,7 @@
 # Email:     bj600800@gmail.com
 # DATE:      2023/03/06
 
-# Description: Build cath description sqlite file, source file read in by a generator from SqlBuilder
+# Description: create sql database for CATH description
 # ------------------------------------------------------------------------------
 """
 
@@ -64,11 +64,11 @@ class CathSql(SqlBuilder):
 
     def run(self):
         columns = [i[0] for i in self.column_definition]
-        logger.info(f"Start to create SQL table: {self.table_name} in SQL file {self.sql_db}")
+        logger.info(f"Start to create SQL table: {self.table_name} in SQL file {self.sql_path}")
 
         logger.info(f"Create SQL table: {self.table_name}")
         sql = f"CREATE TABLE {self.table_name} ({', '.join([i[0]+' '+i[1] for i in self.column_definition])})"
-        cursor = self.create_table(self.table_name, self.sql_db, sql)
+        cursor = self.create_table(self.table_name, self.sql_path, sql)
 
         logger.info(f"Parse file and insert records into {self.table_name}")
         self.parse_desc(cursor)
