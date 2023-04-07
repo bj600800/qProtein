@@ -54,11 +54,11 @@ class CazyAnalysis(SqlBuilder):
         self.record_counter += 1
         self.total_records += 1
 
-    def parse_cazy(self, cursor):
+    def parse_cazy(self, cursor, columns):
         for line in self.read_text_generator(filename=self.cazy_output, header=True):
             line = line.split('\t')
             if self.record_counter == 500000:
-                self.insert_many(cursor=cursor, records=self.records, values_num=3)
+                self.insert_update_columns(cursor=cursor, table_name="results_summary", columns=columns, records=self.records)
                 logger.info(f"Insert 500000 records. Total records:" + str(self.total_records))
 
                 self.records = []
@@ -69,7 +69,9 @@ class CazyAnalysis(SqlBuilder):
 
         if self.record_counter > 0:
             logger.info(f"Insert {self.record_counter} records")
-            self.insert_many(cursor=cursor, records=self.records, values_num=3)
+            self.insert_update_columns(cursor=cursor, table_name="results_summary", columns=columns,
+                                       records=self.records
+                                       )
 
         logger.info(f"Total records:" + str(self.total_records))
 
@@ -78,7 +80,7 @@ class CazyAnalysis(SqlBuilder):
         columns = [i[0] for i in self.column_definition]
         cursor = self.connect_sql(sql_db=self.sql_path)
         self.add_column(cursor=cursor, table_name='results_summary', column_definition=self.column_definition)
-        self.parse_cazy(cursor=cursor)
+        self.parse_cazy(cursor=cursor, columns=columns)
         self.create_index(cursor=cursor, columns=columns)
 
 
@@ -195,7 +197,7 @@ class SprotAnnotation(SqlBuilder, SqlSearch):
         self.summary_sql_path = summary_sql_path
         self.uniprot_db = uniprot_db
         self.column_definition = column_definition
-        self.uniprot_table = uniprot_table_name
+        self.uniprot_table_name = uniprot_table_name
         self.target_column = search_column
 
         self.record_items = {column_name[0]: '' for column_name in self.column_definition}
@@ -219,8 +221,9 @@ class SprotAnnotation(SqlBuilder, SqlSearch):
             batch_acc = acc[i:i + batch_size]
             sql_cmd = "SELECT * FROM {} WHERE accession IN ({})" \
                 .format(uniprot_table_name, ', '.join(['?'] * len(batch_acc)))
-            uniprot_cursor.execute(sql_cmd, batch_acc)
-            return_dat = uniprot_cursor.fetchall()
+            return_dat = SqlSearch.fetch_many_results(cursor=uniprot_cursor, sql_cmd=sql_cmd, search_targets=batch_acc)
+            # uniprot_cursor.execute(sql_cmd, batch_acc)
+            # return_dat = uniprot_cursor.fetchall()
             uniprot_dat.extend(return_dat)
         return uniprot_dat
 
@@ -241,7 +244,7 @@ class SprotAnnotation(SqlBuilder, SqlSearch):
         self.total_records += 1
 
     def parse_uniprot(self, cursor, columns):
-        uniprot_dat = self.get_uniprot_dat(self.uniprot_table)
+        uniprot_dat = self.get_uniprot_dat(uniprot_table_name=self.uniprot_table_name)
         for i in uniprot_dat:
             if self.record_counter == 500000:
                 self.update_many_columns(cursor=cursor, table_name="results_summary",
@@ -259,11 +262,11 @@ class SprotAnnotation(SqlBuilder, SqlSearch):
     def run(self):
         logger.info(f"Annotate based on sprot accession")
         columns = [i[0] for i in self.column_definition]
-        cursor = self.connect_sql(self.summary_sql_path)
+        cursor = self.connect_sql(sql_db=self.summary_sql_path)
         # annotation should not add accession column
-        self.add_column(cursor, self.table_name, self.column_definition[1:])
-        self.parse_uniprot(cursor, columns)
-        self.create_index(cursor, columns)
+        self.add_column(cursor=cursor, table_name="results_summary", column_definition=self.column_definition[1:])
+        self.parse_uniprot(cursor=cursor, columns=columns)
+        self.create_index(cursor=cursor, columns=columns)
 
 
 #
@@ -289,14 +292,14 @@ class TremblDmnd(SprotDmnd):
 
 
 class TremblAnnotation(SprotAnnotation):
-    def __init__(self, summary_sql_path, uniprot_db, column_definition, uniprot_table, search_column):
-        super().__init__(summary_sql_path=summary_sql_path, uniprot_table_name="results_summary",
+    def __init__(self, summary_sql_path, uniprot_db, column_definition, uniprot_table_name, search_column):
+        super().__init__(summary_sql_path=summary_sql_path, uniprot_table_name=uniprot_table_name,
                          uniprot_db=uniprot_db, search_column=search_column, column_definition=column_definition)
 
         self.summary_sql_path = summary_sql_path
         self.uniprot_db = uniprot_db
         self.column_definition = column_definition
-        self.uniprot_table = uniprot_table
+        self.uniprot_table_name = uniprot_table_name
         self.target_column = search_column
 
         self.record_items = {column_name[0]: '' for column_name in self.column_definition}
