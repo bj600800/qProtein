@@ -19,33 +19,15 @@ def read_cif(cif_path):
     cif_dict = mmcif_dict.parse(cif_path)
     return cif_dict
 
-"""
-group_PDB 5021
-id 5021
-type_symbol 5021
-label_atom_id 5021
-label_alt_id 5021
-label_comp_id 5021
-label_asym_id 5021
-label_entity_id 5021
-label_seq_id 5021 -> residue number
-pdbx_PDB_ins_code 5021
-Cartn_x 5021
-Cartn_y 5021
-Cartn_z 5021
-occupancy 5021
-B_iso_or_equiv 5021
-pdbx_formal_charge 5021
-auth_seq_id 5021
-auth_comp_id 5021
-auth_asym_id 5021
-auth_atom_id 5021
-pdbx_PDB_model_num 5021
-pdbx_sifts_xref_db_acc 5021
-pdbx_sifts_xref_db_name 5021
-pdbx_sifts_xref_db_num 5021 -> residue number
-pdbx_sifts_xref_db_res 5021
-"""
+
+def get_blast_info(uniprot_out):
+    with open(uniprot_out, 'r') as rf:
+        content = rf.readlines()
+    blast_info = [(i[0], i[3], ) for i in content]
+
+
+def get_query_length():
+    pass
 
 
 def get_position_num(cif_dict, start_res, end_res):
@@ -57,7 +39,6 @@ def get_position_num(cif_dict, start_res, end_res):
             start_num.append(num)
         if res_id == end_res:
             end_num.append(num)
-
     return (min(start_num), max(end_num))
 
 
@@ -67,7 +48,7 @@ def edit_cif(start_res, atom_num, cif_dict):
     """
     cif_id = list(cif_dict.keys())[0]
     mean_bfactor = mean([float(i) for i in cif_dict[cif_id]['_atom_site']['B_iso_or_equiv']])
-    if mean_bfactor < 90:
+    if mean_bfactor < 70:
         return
     entry = cif_dict[cif_id]['_entry']
     start_atom = atom_num[0]
@@ -99,8 +80,6 @@ if __name__ == '__main__':
     cath_file = r'D:\subject\active\1-qProtein\data\tibet\ident90_from_cif.out'
     if not os.path.exists(write_dir):
         os.mkdir(write_dir)
-    with open(cath_file, 'r') as rf:
-        content = rf.readlines()
     for cif in os.listdir(dir_path):
         for line in content:
             line = line.split('\t')

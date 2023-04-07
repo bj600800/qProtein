@@ -22,8 +22,8 @@ def get_fasta(fasta_sql, query_match):
     query_name = [i[0] for i in query_match]
     sql_cmd = "SELECT query_name, sequence from query_seq where query_name in ({})" .format(', '.join(['?'] * len(query_name)))
     results = SqlSearch.fetch_many_results(cursor, sql_cmd, query_name)
-    fasta = [(query[0], result[0]) for result in results for query in query_match
-             if result[0] == query[0] and int(query[1]) / len(result[1]) >= 90]
+    fasta = [(result[0], result[1]) for result in results for query in query_match
+             if result[0] == query[0] and len(result[1]) > 200 and int(query[1]) / len(result[1]) >= 0.9]
     return fasta
 
 

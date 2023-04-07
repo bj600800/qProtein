@@ -289,7 +289,8 @@ class SprotAnnotation(SqlBuilder, SqlSearch):
         cursor = self.connect_sql(self.summary_sql_path)
 
         logger.info(f"Add columns {', '.join(columns)} into table {self.table_name}")
-        self.add_column(cursor, self.table_name, self.column_definition)
+        # annotation should not add accession column
+        self.add_column(cursor, self.table_name, self.column_definition[1:])
 
         logger.info(f"!! Parse sprot: update and insert records into {self.table_name}")
         self.parse_uniprot(cursor, columns)
@@ -351,7 +352,7 @@ class TremblAnnotation(SprotAnnotation):
         cursor = self.connect_sql(self.summary_sql_path)
 
         logger.info(f"Add columns {', '.join(columns)} into table {self.table_name}")
-        self.add_column(cursor, self.table_name, self.column_definition)
+        self.add_column(cursor, self.table_name, self.column_definition[1:])
 
         logger.info(f"!! Parse Trembl update and insert records into {self.table_name}")
         self.parse_uniprot(cursor, columns)
