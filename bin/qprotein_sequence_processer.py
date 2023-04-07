@@ -19,15 +19,14 @@ logger = logger.setup_log(name=__name__)
 
 
 def create_sql(summary_sql_path):
-    summary_table_name = 'results_summary'
-    annotation_processer.CreateSql(summary_table_name, summary_sql_path)
-    logger.info(f'Create SQL table {summary_table_name} at {summary_sql_path}')
+    annotation_processer.CreateSql(summary_sql_path)
+    logger.info(f'Create SQL table results_summary {summary_sql_path}')
 
 
 def insert_cazy(cazy_output, sql_path, summary_table_name):
     try:
         column_definition = [('query_name', 'TEXT'), ('ec_number', 'TEXT'), ('cazy_family', 'TEXT')]
-        cazy = annotation_processer.CazyAnalysis(cazy_output, sql_path, summary_table_name, column_definition)
+        cazy = annotation_processer.CazyAnalysis(cazy_output, sql_path, column_definition)
         cazy.run()
     except IOError:
         logger.debug('NO cazy_output file!')

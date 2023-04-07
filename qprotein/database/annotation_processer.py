@@ -16,22 +16,20 @@ logger = logger.setup_log(name=__name__)
 
 
 class CreateSql(SqlBuilder):
-    def __init__(self, table_name, summary_sql_path):
+    def __init__(self, summary_sql_path):
         super(SqlBuilder, self).__init__()
-        self.table_name = table_name
         self.summary_sql_path = summary_sql_path
-
         self.create()
 
     def create(self):
-        sql = f"CREATE TABLE {self.table_name} (query_name TEXT PRIMARY KEY)"
-        self.create_table(self.table_name, self.summary_sql_path, sql)
+        sql = f"CREATE TABLE 'results_summary' (query_name TEXT PRIMARY KEY)"
+        self.create_table(table_name='results_summary', sql_db=self.summary_sql_path, sql=sql)
 
 
 class CazyAnalysis(SqlBuilder):
-    def __init__(self, cazy_output, sql_path, table_name, column_definition):
-        super(CazyAnalysis, self).__init__(sql_path, table_name, column_definition)
-
+    def __init__(self, cazy_output, sql_path, column_definition):
+        super(CazyAnalysis, self).__init__(sql_db=sql_path, table_name='results_summary',
+                                           column_definition=column_definition)
         self.cazy_output = cazy_output
         self.column_definition = column_definition
         self.record_items = {column_name[0]: '' for column_name in self.column_definition}
@@ -57,12 +55,12 @@ class CazyAnalysis(SqlBuilder):
         self.total_records += 1
 
     def parse_cazy(self, cursor):
-        for line in self.read_text_generator(self.cazy_output, header=True):
+        for line in self.read_text_generator(filename=self.cazy_output, header=True):
             line = line.split('\t')
 
             if self.record_counter == 500000:
-                self.insert_many(cursor, self.records, 3)
-                logger.info(f"Insert 500000 records into {self.table_name}, total records:" + str(self.total_records))
+                self.insert_many(cursor=cursor, records=self.records, values_num=3)
+                logger.info(f"Insert 500000 records. Total records:" + str(self.total_records))
 
                 self.records = []
                 self.record_counter = 0
@@ -71,24 +69,23 @@ class CazyAnalysis(SqlBuilder):
                 self.format_records(line)
 
         if self.record_counter > 0:
-            logger.info(f"Insert {self.record_counter} records into {self.table_name}")
-            self.insert_many(cursor, self.records, 3)
+            logger.info(f"Insert {self.record_counter} records")
+            self.insert_many(cursor=cursor, records=self.records, values_num=3)
 
         logger.info(f"Total records:" + str(self.total_records))
 
     def run(self):
         columns = [i[0] for i in self.column_definition]
-        logger.info(f"Connect SQL table: {self.table_name} in {self.sql_path}")
-        cursor = self.connect_sql(self.sql_path)
+        cursor = self.connect_sql(sql_db=self.sql_path)
 
-        logger.info(f"Add columns {', '.join(columns)} into table {self.table_name}")
-        self.add_column(cursor, self.table_name, self.column_definition)
+        logger.info(f"Add columns {', '.join(columns)} into the table results_summary")
+        self.add_column(cursor=cursor, table_name='results_summary', column_definition=self.column_definition)
 
-        logger.info(f"!! Parse cazy output and insert records")
-        self.parse_cazy(cursor)
+        logger.info(f"Parse cazy output and insert records")
+        self.parse_cazy(cursor=cursor)
 
-        logger.info(f'Create index cazy_idx for SQL table: {self.table_name}')
-        self.create_index(cursor, columns)
+        logger.info(f'Create index for cazy')
+        self.create_index(cursor=cursor, columns=columns)
 
 
 class MeropsAnalysis(SqlBuilder, SqlSearch):

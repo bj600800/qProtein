@@ -50,7 +50,8 @@ class SqlBuilder(object):
         cursor.execute(sql)
         return cursor
 
-    def add_column(self, cursor, table_name, column_definition: list):
+    @staticmethod
+    def add_column(cursor, table_name, column_definition: list):
         cursor.execute(f"SELECT * FROM {table_name}")
         existing_columns = [row[0] for row in cursor.description]
         new_columns = [col for col in column_definition if col[0] not in existing_columns]
