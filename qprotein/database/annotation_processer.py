@@ -57,7 +57,6 @@ class CazyAnalysis(SqlBuilder):
     def parse_cazy(self, cursor):
         for line in self.read_text_generator(filename=self.cazy_output, header=True):
             line = line.split('\t')
-
             if self.record_counter == 500000:
                 self.insert_many(cursor=cursor, records=self.records, values_num=3)
                 logger.info(f"Insert 500000 records. Total records:" + str(self.total_records))
@@ -89,11 +88,10 @@ class CazyAnalysis(SqlBuilder):
 
 
 class MeropsAnalysis(SqlBuilder, SqlSearch):
-    def __init__(self, merops_output, summary_sql_path, table_name, column_definition):
-        super(MeropsAnalysis, self).__init__(summary_sql_path, table_name, column_definition)
+    def __init__(self, merops_output, summary_sql_path, column_definition):
+        super(MeropsAnalysis, self).__init__(sql_db=summary_sql_path, table_name='results_summary',
+                                             column_definition=column_definition)
         self.summary_sql_path = summary_sql_path
-        self.table_name = table_name
-
         self.column_definition = column_definition
         self.merops_output = merops_output
         self.record_items = {column_name[0]: '' for column_name in self.column_definition}
@@ -113,12 +111,13 @@ class MeropsAnalysis(SqlBuilder, SqlSearch):
         self.total_records += 1
 
     def parse_merops(self, cursor, columns):
-        for line in self.read_text_generator(self.merops_output, header=True):
+        for line in self.read_text_generator(filename=self.merops_output, header=True):
             line = line.split('\t')
 
             if self.record_counter == 500000:
-                self.insert_update_columns(cursor, self.table_name, columns, self.records)
-                logger.info(f"Insert 500000 records into {self.table_name}, total records:" + str(self.total_records))
+                self.insert_update_columns(cursor=cursor, table_name="results_summary",
+                                           columns=columns, records=self.records)
+                logger.info(f"Insert 500000 records. Total records:" + str(self.total_records))
 
                 self.records = []
                 self.record_counter = 0
@@ -126,25 +125,24 @@ class MeropsAnalysis(SqlBuilder, SqlSearch):
                 self.format_records(line)
 
         if self.record_counter > 0:
-            logger.info(f"Insert {self.record_counter} records into {self.table_name}")
-            self.insert_update_columns(cursor, self.table_name, columns, self.records)
+            logger.info(f"Insert {self.record_counter} records")
+            self.insert_update_columns(cursor=cursor, table_name="results_summary", columns=columns,
+                                       records=self.records)
 
         logger.info(f"Total records:" + str(self.total_records))
 
     def run(self):
         columns = [i[0] for i in self.column_definition]
+        cursor = self.connect_sql(sql_db=self.summary_sql_path)
 
-        logger.info(f"Connect SQL table: {self.table_name} in {self.summary_sql_path}")
-        cursor = self.connect_sql(self.summary_sql_path)
+        logger.info(f"Add columns {', '.join(columns)} into the table results_summary")
+        self.add_column(cursor=cursor, table_name="results_summary", column_definition=self.column_definition)
 
-        logger.info(f"Add columns {', '.join(columns)} into table {self.table_name}")
-        self.add_column(cursor, self.table_name, self.column_definition)
+        logger.info(f"Parse Merops output and insert records")
+        self.parse_merops(cursor=cursor, columns=columns)
 
-        logger.info(f"!! Parse Merops output and insert records")
-        self.parse_merops(cursor, columns)
-
-        logger.info(f'Create index merops_idx for SQL table: {self.table_name}')
-        self.create_index(cursor, columns)
+        logger.info(f'Create index for merops')
+        self.create_index(cursor=cursor, columns=columns)
 
 
 class SprotDmnd(SqlBuilder, SqlSearch):

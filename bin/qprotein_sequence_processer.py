@@ -35,7 +35,7 @@ def insert_cazy(cazy_output, sql_path, summary_table_name):
 def insert_merops(merops_output, summary_sql_path, summary_table_name):
     try:
         column_definition = [('query_name', 'TEXT'), ('merops_family', 'TEXT')]
-        merops = annotation_processer.MeropsAnalysis(merops_output, summary_sql_path, summary_table_name, column_definition)
+        merops = annotation_processer.MeropsAnalysis(merops_output, summary_sql_path, column_definition)
         merops.run()
     except IOError:
         logger.debug('No merops_output file!')
