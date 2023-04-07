@@ -92,6 +92,13 @@ def insert_merops(merops_output, summary_sql_path):
         logger.debug('No merops_output file!')
 
 
+def insert_query_length(summary_sql_path, fasta_sql_path, column_definition):
+    try:
+        query_length = annotation_processer.QueryAnalysis(summary_sql_path=summary_sql_path,
+                                                          fasta_sql_path=fasta_sql_path, column_definition=column_definition)
+        query_length.get_query_length()
+    except Exception as e:
+        logger.debug(e)
 
 def run():
     root_dir = r'D:\subject\active\1-qProtein\data'
@@ -113,6 +120,7 @@ def run():
     annotate_trembl(summary_sql_path, uniprot_db)
     insert_cazy(cazy_output, summary_sql_path)
     insert_merops(merops_output, summary_sql_path)
+    insert_query_length(summary_sql_path=summary_sql_path, fasta_sql_path=uniprot_db, column_definition=0)
 
 
 

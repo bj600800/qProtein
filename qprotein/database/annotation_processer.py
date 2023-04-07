@@ -222,8 +222,6 @@ class SprotAnnotation(SqlBuilder, SqlSearch):
             sql_cmd = "SELECT * FROM {} WHERE accession IN ({})" \
                 .format(uniprot_table_name, ', '.join(['?'] * len(batch_acc)))
             return_dat = SqlSearch.fetch_many_results(cursor=uniprot_cursor, sql_cmd=sql_cmd, search_targets=batch_acc)
-            # uniprot_cursor.execute(sql_cmd, batch_acc)
-            # return_dat = uniprot_cursor.fetchall()
             uniprot_dat.extend(return_dat)
         return uniprot_dat
 
@@ -323,3 +321,32 @@ class TremblAnnotation(SprotAnnotation):
         self.add_column(cursor=cursor, table_name="results_summary", column_definition=self.column_definition[1:])
         self.parse_uniprot(cursor=cursor, columns=columns)
         self.create_index(cursor=cursor, columns=columns)
+
+
+class QueryAnalysis(SqlBuilder, SqlSearch):
+    def __init__(self, summary_sql_path, fasta_sql_path, column_definition):
+        super().__init__(sql_db=summary_sql_path, table_name="results_summary", column_definition=column_definition)
+        self.summary_sql_path = summary_sql_path
+        self.fasta_sql_path = fasta_sql_path
+        self.column_definition = column_definition
+
+    def get_query_name(self):
+        summary_cursor = self.connect_sql(self.summary_sql_path)
+        sql_cmd = "SELECT query_name FROM results_summary WHERE sprot_acc != '' or trembl_acc != ''"
+        query_name = [i[0] for i in SqlSearch.fetch_results(summary_cursor, sql_cmd)]
+        return query_name
+
+    def get_query_length(self):
+        fasta_cursor = self.connect_sql(self.fasta_sql_path)
+        query_name = self.get_query_name()
+        batch_size = 100000
+        query_length = []
+        total_query = len(query_name)
+        for i in range(0, total_query, batch_size):
+            batch_acc = query_name[i:i + batch_size]
+            sql_cmd = "SELECT query_name, length(sequence) FROM query_seq WHERE query_name IN ({})" \
+                .format(', '.join(['?'] * len(batch_acc)))
+            return_dat = SqlSearch.fetch_many_results(cursor=fasta_cursor, sql_cmd=sql_cmd, search_targets=batch_acc)
+            query_length.extend(return_dat)
+        print(query_length)
+        return query_length
