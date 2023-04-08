@@ -20,7 +20,7 @@ logger = logger.setup_log(name=__name__)
 
 def create_sql(summary_sql_path):
     annotation_processer.CreateSql(summary_sql_path)
-    logger.info(f'Create SQL table results_summary {summary_sql_path}')
+    logger.info(f"Create SQL table results_summary {summary_sql_path}")
 
 
 def insert_sprot(dmnd_output, summary_sql_path):
@@ -28,16 +28,12 @@ def insert_sprot(dmnd_output, summary_sql_path):
         dmnd = annotation_processer.SprotDmnd(dmnd_output, summary_sql_path)
         dmnd.run()
     except IOError:
-        logger.debug('No sprot_dmnd_output file!')
+        logger.debug("No sprot_dmnd_output file!")
 
 
 def annotate_sprot(uniprot_db, summary_sql_path):
-    uniprot_table_name = "sprot_dat"
-    search_column = "sprot_acc"
     try:
-        sprot_dat = annotation_processer.SprotAnnotation(uniprot_db=uniprot_db, uniprot_table_name=uniprot_table_name,
-                                                         summary_sql_path=summary_sql_path, search_column=search_column,
-                                                         )
+        sprot_dat = annotation_processer.SprotAnnotation(uniprot_db=uniprot_db,summary_sql_path=summary_sql_path)
         sprot_dat.run()
     except Exception as e:
         logger.debug(e)
@@ -48,19 +44,15 @@ def insert_trembl(dmnd_output, summary_sql_path):
         trembl = annotation_processer.TremblDmnd(dmnd_output, summary_sql_path)
         trembl.run()
     except IOError:
-        logger.debug('No trembl_dmnd_output file!')
+        logger.debug("No trembl_dmnd_output file!")
 
 
 def annotate_trembl(summary_sql_path, uniprot_db):
-    uniprot_table_name = 'trembl_dat'
-    search_column = 'trembl_acc'
     try:
-        trembl_dat = annotation_processer.TremblAnnotation(summary_sql_path=summary_sql_path, uniprot_db=uniprot_db,
-                                                           uniprot_table_name=uniprot_table_name,
-                                                           search_column=search_column)
+        trembl_dat = annotation_processer.TremblAnnotation(summary_sql_path=summary_sql_path, uniprot_db=uniprot_db)
         trembl_dat.run()
     except Exception as e:
-        logger.error('Got an exception!', e)
+        logger.error("Got an exception!", e)
 
 
 def insert_cazy(cazy_output, sql_path):
@@ -68,7 +60,7 @@ def insert_cazy(cazy_output, sql_path):
         cazy = annotation_processer.CazyAnalysis(cazy_output=cazy_output, sql_path=sql_path)
         cazy.run()
     except IOError:
-        logger.debug('NO cazy_output file!')
+        logger.debug("NO cazy_output file!")
 
 
 def insert_merops(merops_output, summary_sql_path):
@@ -76,7 +68,7 @@ def insert_merops(merops_output, summary_sql_path):
         merops = annotation_processer.MeropsAnalysis(merops_output=merops_output, summary_sql_path=summary_sql_path)
         merops.run()
     except IOError:
-        logger.debug('No merops_output file!')
+        logger.debug("No merops_output file!")
 
 
 def insert_query_length(task_name, summary_sql_path, fasta_sql_path):
@@ -86,12 +78,12 @@ def insert_query_length(task_name, summary_sql_path, fasta_sql_path):
                                                           )
         query_length.run()
     except Exception as e:
-        logger.error('Got an exception!', e)
+        logger.error("Got an exception!", e)
 
 
 def run():
-    root_dir = r'D:\subject\active\1-qProtein\data'
-    task_name = 'manure'
+    root_dir = r"D:\subject\active\1-qProtein\data"
+    task_name = "manure"
     work_dir = os.path.join(root_dir, task_name)
     if not os.path.exists(work_dir):
         logger.info('Create dir', work_dir)

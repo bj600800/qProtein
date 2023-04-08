@@ -103,7 +103,6 @@ class SqlBuilder(object):
             batch_acc = records[i:i+batch_size]
             question_mark = ', '.join(['?'] * question_num)
             excluded_clause = ', '.join([i+'=excluded.'+i for i in columns[1:]])
-
             # use this sql need has the primary key.
             sql_cmd = f"INSERT INTO {table_name} ({column_name}) VALUES ({question_mark})" \
                       f"ON CONFLICT ({columns[0]}) DO UPDATE SET {excluded_clause}"

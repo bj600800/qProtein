@@ -93,7 +93,7 @@ class SprotDmnd(SqlBuilder, SqlSearch):
 
 
 class SprotAnnotation(SqlBuilder, SqlSearch):
-    def __init__(self, uniprot_db, uniprot_table_name, summary_sql_path, search_column):
+    def __init__(self, uniprot_db, summary_sql_path):
         super().__init__(sql_db=summary_sql_path, table_name="results_summary",
                          column_definition=[('sprot_acc', 'TEXT'), ('sprot_name', 'TEXT'), ('sprot_ec_number', 'TEXT'),
                                             ('sprot_go_component', 'TEXT'), ('sprot_go_process', 'TEXT'),
@@ -102,8 +102,8 @@ class SprotAnnotation(SqlBuilder, SqlSearch):
 
         self.summary_sql_path = summary_sql_path
         self.uniprot_db = uniprot_db
-        self.uniprot_table_name = uniprot_table_name
-        self.target_column = search_column
+        self.uniprot_table_name = "sprot_dat"
+        self.target_column = "sprot_acc"
 
         self.record_items = {column_name[0]: '' for column_name in self.column_definition}
         self.record_counter = 0
@@ -207,17 +207,16 @@ class TremblDmnd(SprotDmnd):
 
 
 class TremblAnnotation(SprotAnnotation):
-    def __init__(self, summary_sql_path, uniprot_db, uniprot_table_name, search_column):
-        super().__init__(summary_sql_path=summary_sql_path, uniprot_table_name=uniprot_table_name,
-                         uniprot_db=uniprot_db, search_column=search_column)
+    def __init__(self, summary_sql_path, uniprot_db):
+        super().__init__(summary_sql_path=summary_sql_path, uniprot_db=uniprot_db)
 
         self.summary_sql_path = summary_sql_path
         self.uniprot_db = uniprot_db
         self.column_definition = [('trembl_acc', 'TEXT'), ('trembl_name', 'TEXT'), ('trembl_ec_number', 'TEXT'),
                                   ('trembl_go_component', 'TEXT'), ('trembl_go_process', 'TEXT'),
                                   ('trembl_go_function', 'TEXT'), ('trembl_interpro', 'TEXT'), ('trembl_pfam', 'TEXT')]
-        self.uniprot_table_name = uniprot_table_name
-        self.target_column = search_column
+        self.uniprot_table_name = "trembl_dat"
+        self.target_column = "trembl_acc"
 
         self.record_items = {column_name[0]: '' for column_name in self.column_definition}
         self.record_counter = 0
