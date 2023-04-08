@@ -31,7 +31,7 @@ class SqlBuilder(object):
     @staticmethod
     def read_text_generator(filename, header):
         with open(filename, 'r') as f:
-            if header == True or 'T':
+            if header is True or 'T':
                 next(f)
             for line in f:
                 yield line
@@ -51,15 +51,20 @@ class SqlBuilder(object):
         return cursor
 
     @staticmethod
-    def add_column(cursor, table_name, column_definition: list):
+    def add_column(cursor, table_name, column_definition: list, specific_column=False):
         cursor.execute(f"SELECT * FROM {table_name}")
         existing_columns = [row[0] for row in cursor.description]
         new_columns = [col for col in column_definition if col[0] not in existing_columns]
         if not new_columns:
             return
-        for name, dtype in new_columns:
-            sql = f"ALTER TABLE {table_name} ADD COLUMN {name} {dtype}"
-            cursor.execute(sql)
+        if specific_column:
+            for name, dtype in new_columns:
+                sql = f"ALTER TABLE {table_name} ADD COLUMN {name} {dtype} AFTER {specific_column}"
+                cursor.execute(sql)
+        else:
+            for name, dtype in new_columns:
+                sql = f"ALTER TABLE {table_name} ADD COLUMN {name} {dtype}"
+                cursor.execute(sql)
 
     @staticmethod
     def connect_sql(sql_db):

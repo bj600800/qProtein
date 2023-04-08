@@ -129,7 +129,7 @@ class UniprotSql(SqlBuilder):
         self.parse_dat(cursor)
 
         logger.info(f'Create index for SQL table: {self.table_name}')
-        self.create_index_all(cursor)
+        self.create_index(cursor)
 
         logger.info(f'Successfully built SQL database for {self.table_name}')
 

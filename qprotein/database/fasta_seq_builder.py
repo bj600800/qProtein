@@ -7,6 +7,7 @@
 # Description: create sql database for fasta sequences
 # ------------------------------------------------------------------------------
 """
+import os.path
 
 from qprotein.utilities import logger
 from qprotein.database.sqlite3_builder import SqlBuilder
@@ -74,9 +75,12 @@ class FastaSql(SqlBuilder):
 
 
 if __name__ == '__main__':
-    fasta_file = r'D:\subject\active\1-qProtein\data\manure\manure.fasta'
-    sql_db = r'D:\subject\active\1-qProtein\data\manure\qprotein_db.db'
-    table_name = 'query_seq'
+    task_name = 'manure'
+    root_dir = r'D:\subject\active\1-qProtein\data'
+    work_dir = os.path.join(root_dir, task_name)
+    fasta_file = os.path.join(work_dir, 'manure.fasta')
+    sql_db = os.path.join(root_dir, 'qprotein_db.db')
+    table_name = os.path.split(fasta_file)[1].split('.')[0]
     column_definition = [("query_name", "TEXT"), ("sequence", "TEXT")]
     fasta_db = FastaSql(fasta_file, sql_db, table_name, column_definition)
     fasta_db.run()

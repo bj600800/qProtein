@@ -31,11 +31,8 @@ def get_target_name(target_fasta):
 def sql_parse(sql_db, query_name):
     connect = sqlite3.connect(sql_db)
     cursor = connect.cursor()
-    sql = "SELECT query_name, cazy_family, sprot_acc, trembl_acc FROM results_summary " \
+    sql = "SELECT query_name, sprot_acc, trembl_acc FROM results_summary " \
           "WHERE trembl_acc !='' or sprot_acc !=''" \
-          "AND query_name in ({})".format(', '.join(['?'] * len(query_name)))
-    sql = "SELECT query_name, cazy_family, sprot_acc FROM results_summary " \
-          "WHERE sprot_acc !=''" \
           "AND query_name in ({})".format(', '.join(['?'] * len(query_name)))
     cursor.execute("begin")
     cursor.execute(sql, query_name)
