@@ -1,7 +1,3 @@
-"""
-get sequence for structure acquisition and prediction.
-"""
-
 import json
 import os
 import sqlite3
@@ -10,6 +6,9 @@ from queue import Queue
 
 import requests
 from Bio import SeqIO
+
+from pdbecif.mmcif_tools import MMCIF2Dict
+from pdbecif.mmcif_io import CifFileWriter
 
 
 def check_response(response):
@@ -38,18 +37,20 @@ def sql_parse(sql_db, query_name):
     cursor.execute(sql, query_name)
     sql_rows = cursor.fetchall()
     print('Get targets: ', len(sql_rows))
-
     dict_uniprot_ids = {}
     for i in sql_rows:
-        if i[2]:
-            dict_uniprot_ids[i[0] + '_sprot_' + i[2]] = i[2]
+        if i[1]:
+            dict_uniprot_ids[i[0] + '_sprot_' + i[1]] = i[1]
         elif i[3]:
-            dict_uniprot_ids[i[0] + '_trembl_' + i[3]] = i[3]
+            dict_uniprot_ids[i[0] + '_trembl_' + i[2]] = i[2]
     print('SQL search complete!')
     return dict_uniprot_ids
 
 
 class Producer(threading.Thread):
+    """
+    request structures url from AFDB
+    """
     def __init__(self, uniID_queue, struct_queue):
         super(Producer, self).__init__()
         self.POLLING_INTERVAL = 1
@@ -65,9 +66,6 @@ class Producer(threading.Thread):
             self.get_cif_url(file_name, uniID)
 
     def get_cif_url(self, file_name, uniID):
-        """
-        根据uniprotID爬取蛋白质结构链接
-        """
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.25 Safari/537.36 Core/1.70.3861.400 QQBrowser/10.7.4313.400"
             }
@@ -101,12 +99,14 @@ class Producer(threading.Thread):
                     else:
                         para_struct['cif_url'] = ''
                     break
-        except:
-            print('url error')
-            pass
+        except requests.HTTPError as e:
+            print(uniID, e)
 
 
 class Consumer(threading.Thread):
+    """
+    get structures and cut them off
+    """
     def __init__(self, uniID_queue, struct_queue, dir_path):
         super(Consumer, self).__init__()
         self.POLLING_INTERVAL = 1
@@ -114,18 +114,7 @@ class Consumer(threading.Thread):
         self.struct_queue = struct_queue
         self.dir_path = dir_path
 
-    def run(self):
-        while True:
-            if self.uniID_queue.empty() and self.struct_queue.empty():
-                print('empty')
-                break
-            file_name, url = self.struct_queue.get()
-            self.get_struct(file_name, url)
-
-    def get_struct(self, file_name, url):
-        """
-        下载蛋白质结构
-        """
+    def get_structure(self, file_name, url):
         print("Downloaded {url}".format(url=url))  # 打印线程thread和被爬取结构的url
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36"
@@ -144,7 +133,14 @@ class Consumer(threading.Thread):
 
         except requests.HTTPError:
             print('Error: ', file_name)
-            raise
+
+    def run(self):
+        while True:
+            if self.uniID_queue.empty() and self.struct_queue.empty():
+                print('empty')
+                break
+            file_name, url = self.struct_queue.get()
+            self.get_structure(file_name, url)
 
 
 def main(sql_db, target_fasta, dir_path):

@@ -20,12 +20,6 @@ def read_cif(cif_path):
     return cif_dict
 
 
-def get_blast_info(uniprot_out):
-    with open(uniprot_out, 'r') as rf:
-        content = rf.readlines()
-    blast_info = [(i[0], i[3], ) for i in content]
-
-
 def get_query_length():
     pass
 
@@ -80,6 +74,8 @@ if __name__ == '__main__':
     cath_file = r'D:\subject\active\1-qProtein\data\tibet\ident90_from_cif.out'
     if not os.path.exists(write_dir):
         os.mkdir(write_dir)
+    with open(cath_file, 'r') as rf:
+        content = rf.readlines()
     for cif in os.listdir(dir_path):
         for line in content:
             line = line.split('\t')
