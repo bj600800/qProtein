@@ -2,8 +2,9 @@ import json
 import os
 import threading
 from queue import Queue
-
+from tqdm import tqdm
 import requests
+from requests.adapters import Retry
 import multiprocessing
 from qprotein.database.sqlite3_searcher import SqlSearch
 from qprotein.structure.StructureSegmenter import Segmenter
@@ -17,8 +18,10 @@ class TargetNameRetriever(SqlSearch):
     Get target candidates from sql database
     """
 
-    def __init__(self, summary_results_db):
+    def __init__(self, summary_results_db, structure_dir_path, log_file):
         super(TargetNameRetriever, self).__init__(sql_db=summary_results_db)
+        self.structure_dir_path = structure_dir_path
+        self.log_file = log_file
 
     def get_sql_results(self):
         cursor = self.connect_sql(sql_db=sql_db)
@@ -36,30 +39,54 @@ class TargetNameRetriever(SqlSearch):
         results_list = self.fetch_results(cursor=cursor, sql_cmd=sql_cmd)
         return results_list
 
+    def get_exist_query(self):
+        if os.path.exists(self.structure_dir_path):
+            exist_structure = os.listdir(self.structure_dir_path)
+            exist_query_name = [i.split('#')[0] for i in exist_structure]
+            logger.info(f'Found {len(exist_query_name)} structure(s) in {self.structure_dir_path}.')
+            return exist_query_name
+        else:
+            return []
+
+    def get_NO_structure_query(self):
+        if os.path.exists(self.log_file):
+            with open(self.log_file, 'r') as rf:
+                invalid_query_name = [i.rstrip() for i in rf.readlines()]
+            return invalid_query_name
+        else:
+            return []
+
     def filter_results(self):
         # concerned features: identity, coverage
-        results_list = self.get_sql_results()
-        results_filtered = []
+        exist_query_name = self.get_exist_query()
+        invalid_query_name = self.get_NO_structure_query()
+        results_list = [result for result in self.get_sql_results()
+                        if result[0] not in exist_query_name
+                        if result[2] not in invalid_query_name
+                        and result[10] not in invalid_query_name]
+
+        query_info = []
         for result in results_list:
             if all(bool(i) for i in (result[2], result[10])):
                 sprot_quality = (result[3], result[4])
                 trembl_quality = (result[11], result[12])
                 if sum(sprot_quality) >= sum(trembl_quality):
-                    results_filtered.append(result[:10])
+                    query_info.append(result[:10])
                 else:
-                    results_filtered.append(result[:2] + result[10:])
+                    query_info.append(result[:2] + result[10:])
             elif result[2] is not None:
-                results_filtered.append(result[:10])
+                query_info.append(result[:10])
             elif result[10] is not None:
-                results_filtered.append(result[:2] + result[10:])
-        return results_filtered
+                query_info.append(result[:2] + result[10:])
+        return query_info
 
 
-def check_response(response):
-    try:
-        response.raise_for_status()
-    except requests.HTTPError as e:
-        logger.debug(e)
+def start_request_session():
+    retries = Retry(total=3, backoff_factor=0.5, status_forcelist=[500, 502, 503, 504])
+    session = requests.Session()
+    session.mount('http://', requests.adapters.HTTPAdapter(max_retries=retries))
+    session.mount('https://', requests.adapters.HTTPAdapter(max_retries=retries))
+    return session
 
 
 class Producer(threading.Thread):
@@ -67,25 +94,41 @@ class Producer(threading.Thread):
     Produce url of structures from AFDB
     """
 
-    def __init__(self, query_info_queue, structure_info_queue):
+    def __init__(self, query_info_queue, structure_info_queue, log_file):
         super(Producer, self).__init__()
         self.base_url = "https://www.ebi.ac.uk/pdbe/pdbe-kb/3dbeacons/api/uniprot/summary/"
         self.query_info_queue = query_info_queue
         self.structure_info_queue = structure_info_queue
+        self.log_file = log_file
+        self.exist_invalid_name = []
+
+    def get_existed_invalid_uniprot(self):
+        if os.path.exists(log_file):
+            with open(log_file, 'r') as rf:
+                self.exist_invalid_name = [i.strip() for i in rf.readlines()]
+
+    def check_response(self, response, uniprot_acc, log_file):
+        try:
+            response.raise_for_status()
+        except requests.HTTPError as e:
+            if response.status_code == 404:
+                self.get_existed_invalid_uniprot()
+                if uniprot_acc not in self.exist_invalid_name:
+                    with open(log_file, 'a+') as wf:
+                        wf.write(uniprot_acc+'\n')
+            logger.debug(e)
 
     def get_cif_url(self, uniprot_acc):
         headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.25 Safari/537.36 Core/1.70.3861.400 QQBrowser/10.7.4313.400"
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.25 Safari/537.36 Core/1.70.3861.400 QQBrowser/10.7.4313.400",
+            "From": "bj600800@gmail.com"  # ALLWAYS TELL WHO YOU ARE
             }
         base_url = self.base_url
-        try:
-            r = requests.get(url=base_url + uniprot_acc + '.json?provider=alphafold', headers=headers)
-            check_response(r)
-            ret_json = json.loads(r.content)
-            return ret_json
-
-        except requests.HTTPError as e:
-            logger.debug(uniprot_acc + ": failed for " + e)
+        session = start_request_session()
+        r = session.get(url=base_url + uniprot_acc + '.json?provider=alphafold', headers=headers)
+        self.check_response(r, uniprot_acc=uniprot_acc, log_file=self.log_file)
+        ret_json = json.loads(r.content)
+        return ret_json
 
     @staticmethod
     def parse_json(ret_json, uniprot_acc):
@@ -121,32 +164,35 @@ class Consumer(threading.Thread):
     get structures and cut them off
     """
 
-    def __init__(self, query_info_queue, structure_info_queue, dir_path):
+    def __init__(self, query_info_queue, structure_info_queue, structure_dir_path):
         super(Consumer, self).__init__()
         self.query_info_queue = query_info_queue
         self.structure_info_queue = structure_info_queue
-        self.dir_path = dir_path
+        self.structure_dir_path = structure_dir_path
 
     @staticmethod
-    def request_structure(uniprot_acc, url):
+    def check_response(response):
+        try:
+            response.raise_for_status()
+        except requests.HTTPError as e:
+            logger.debug(e)
+
+    def request_structure(self, uniprot_acc, url):
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36",
             "From": "bj600800@gmail.com"  # ALLWAYS TELL WHO YOU ARE
             }
-        try:
-            cif = requests.get(url, headers=headers)
-            check_response(cif)
-            cif_str = cif.content.decode('utf-8')
-            return cif_str
-
-        except requests.HTTPError as e:
-            logger.debug(uniprot_acc + ": failed for " + e)
+        session = start_request_session()
+        response = session.get(url, headers=headers)
+        self.check_response(response=response)
+        cif_str = response.content.decode('utf-8')
+        return cif_str
 
     def map_structure(self, cif_str, query_info):
         query_name, query_length, uniprot_acc, identity, coverage, query_match_length, query_start_residue, \
             query_end_residue, subject_start_residue, subject_end_residue = query_info
 
-        write_cif_path_kw = [self.dir_path, query_name, uniprot_acc]
+        write_cif_path_kw = [self.structure_dir_path, query_name, uniprot_acc]
         segmenter = Segmenter(cif_string=cif_str, query_name=query_name, subject_start_residue=subject_start_residue,
                               subject_end_residue=subject_end_residue, query_start_residue=query_start_residue,
                               query_end_residue=query_end_residue, query_match_length=query_match_length,
@@ -185,13 +231,14 @@ def get_producer_comsumer_num():
     return 1, 1
 
 
-def main(summary_results_db, dir_path):
-    if not os.path.exists(dir_path):
-        os.mkdir(dir_path)
+def main(summary_results_db, structure_dir_path, log_file):
+    if not os.path.exists(structure_dir_path):
+        os.mkdir(structure_dir_path)
 
     query_info_queue = Queue(maxsize=0)
     structure_info_queue = Queue(maxsize=0)
-    target_handler = TargetNameRetriever(summary_results_db=summary_results_db)
+    target_handler = TargetNameRetriever(summary_results_db=summary_results_db, structure_dir_path=structure_dir_path,
+                                         log_file=log_file)
     query_info = target_handler.filter_results()
     logger.info(f'Found {len(query_info)} targets to map structure.')
     for info in query_info:
@@ -202,13 +249,13 @@ def main(summary_results_db, dir_path):
 
     producer_thread_list = []
     for i in range(producer_thread):
-        t = Producer(query_info_queue=query_info_queue, structure_info_queue=structure_info_queue)
+        t = Producer(query_info_queue=query_info_queue, structure_info_queue=structure_info_queue, log_file=log_file)
         producer_thread_list.append(t)
         t.start()
 
     consumer_thread_list = []
     for i in range(consumer_thread):
-        t = Consumer(query_info_queue=query_info_queue, structure_info_queue=structure_info_queue, dir_path=dir_path)
+        t = Consumer(query_info_queue=query_info_queue, structure_info_queue=structure_info_queue, structure_dir_path=structure_dir_path)
         consumer_thread_list.append(t)
         t.daemon = True
         t.start()
@@ -221,6 +268,8 @@ def main(summary_results_db, dir_path):
 
 
 if __name__ == "__main__":
-    sql_db = r'D:\subject\active\1-qProtein\data\manure\qprotein_results.db'
-    dir_path = r'D:\subject\active\1-qProtein\data\manure\structure'
-    main(sql_db, dir_path)
+    work_dir = r'D:\subject\active\1-qProtein\data\manure'
+    sql_db = os.path.join(work_dir, 'qprotein_results.db')
+    structure_dir_path = os.path.join(work_dir, 'structure')
+    log_file = os.path.join(work_dir, '404NotFoundURL.txt')
+    main(sql_db, structure_dir_path, log_file)
