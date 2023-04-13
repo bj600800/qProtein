@@ -27,6 +27,12 @@ class TargetNameRetriever(SqlSearch):
                   "trembl_acc, trembl_ident, trembl_cover, trembl_match_length, trembl_query_start," \
                   "trembl_query_end, trembl_subject_start, trembl_subject_end  " \
                   "FROM results_summary WHERE sprot_acc != '' or trembl_acc != ''"
+        # sql_cmd = "SELECT query_name, seq_length, sprot_acc, sprot_ident, sprot_cover, sprot_match_length," \
+        #           "sprot_query_start, sprot_query_end, sprot_subject_start, sprot_subject_end," \
+        #           "trembl_acc, trembl_ident, trembl_cover, trembl_match_length, trembl_query_start," \
+        #           "trembl_query_end, trembl_subject_start, trembl_subject_end  " \
+        #           "FROM results_summary WHERE query_name == 'Sum14_k97_472745_1_1'"
+
         results_list = self.fetch_results(cursor=cursor, sql_cmd=sql_cmd)
         return results_list
 
@@ -108,7 +114,6 @@ class Producer(threading.Thread):
                 break
             query_info = self.query_info_queue.get()
             self.put_structure_info(query_info)
-            # protein_info = ('Sum14_k97_629838_2_1', 383, 'A0A1M3MXV5', 92.4, 100.0, 383, 1, 383, 77, 459)
 
 
 class Consumer(threading.Thread):
@@ -136,14 +141,12 @@ class Consumer(threading.Thread):
 
         except requests.HTTPError as e:
             logger.debug(uniprot_acc + ": failed for " + e)
-            raise
 
     def map_structure(self, cif_str, query_info):
         query_name, query_length, uniprot_acc, identity, coverage, query_match_length, query_start_residue, \
-        query_end_residue, subject_start_residue, subject_end_residue = query_info
+            query_end_residue, subject_start_residue, subject_end_residue = query_info
 
         write_cif_path_kw = [self.dir_path, query_name, uniprot_acc]
-
         segmenter = Segmenter(cif_string=cif_str, query_name=query_name, subject_start_residue=subject_start_residue,
                               subject_end_residue=subject_end_residue, query_start_residue=query_start_residue,
                               query_end_residue=query_end_residue, query_match_length=query_match_length,
@@ -157,14 +160,15 @@ class Consumer(threading.Thread):
 
     def run(self):
         while True:
-            if self.structure_info_queue.empty() and self.query_info_queue.empty():
-                logger.info('Structure mapping mission complete!')
-                break
             query_info, structure_info = self.structure_info_queue.get()
             uniprot_acc = structure_info["uniprot_acc"]
             url = structure_info["url"]
             cif_str = self.request_structure(uniprot_acc=uniprot_acc, url=url)
-            self.map_structure(cif_str=cif_str, query_info=query_info)
+            write_cif_path = self.map_structure(cif_str=cif_str, query_info=query_info)
+            logger.info(f'Write {query_info[0]} structure: {write_cif_path}')
+            if self.structure_info_queue.empty() and self.query_info_queue.empty():
+                logger.info('Structure mapping mission complete!')
+                break
 
 
 def get_cpu_core():

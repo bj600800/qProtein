@@ -17,12 +17,7 @@ import os
 import io
 from numpy import mean
 from pdbecif.mmcif_tools import MMCIF2Dict
-# from Bio.PDB import Structure
-from Bio.PDB.Model import Model
-from Bio.PDB.mmcifio import MMCIFIO
-from Bio.PDB.Chain import Chain
-from Bio.PDB.MMCIFParser import MMCIFParser
-from Bio.PDB.Structure import Structure
+from pdbecif.mmcif_io import CifFileWriter
 from qprotein.utilities import logger
 
 logger = logger.setup_log(name=__name__)
@@ -45,9 +40,9 @@ class Segmenter:
         self.query_length = query_length
         self.write_cif_path_kw = write_cif_path_kw
 
-        self.get_cif_dict()
+        self.dict_to_file()
 
-    def get_cif_dict(self):
+    def dict_to_file(self):
         mmcif_dict = MMCIF2Dict()
         temp_file = tempfile.NamedTemporaryFile(delete=False)
         temp_file.write(self.cif_string.encode())
@@ -57,7 +52,7 @@ class Segmenter:
         temp_file.close()
 
     @staticmethod
-    def get_plddt(structure_obj):
+    def get_plddt_obj(structure_obj):
         bfactor_list = []
         for model in structure_obj:
             for chain in model:
@@ -69,94 +64,112 @@ class Segmenter:
         mean_plddt = sum(bfactor_list) / len(bfactor_list)
         return mean_plddt
 
+    def get_plddt_dict(self, mmcif_dict, cif_id):
+        bfactor = [float(i) for i in mmcif_dict[cif_id]['_atom_site']['B_iso_or_equiv']]
+        avg_plddt = mean(bfactor)
+        self.subj_structure_length = len(bfactor)
+        return avg_plddt
+
     def full_matched(self):
         start_residue_number = self.subject_start_residue
         end_residue_number = self.subject_end_residue
         return start_residue_number, end_residue_number
 
     def left_unmatched(self):
-        end_residue_number = self.subject_end_residue
         if self.subject_start_residue == 1:
             start_residue_number = 1
         else:
             add_residue = self.query_start_residue - 1
-            start_residue_number = min(1, self.subject_start_residue - add_residue)
-        return start_residue_number, end_residue_number
+            if self.subject_start_residue - add_residue >= 1:
+                start_residue_number = self.subject_start_residue - add_residue
+            else:
+                start_residue_number = 1
+        return start_residue_number
 
     def right_unmatched(self):
-        start_residue_number = 1
-        if self.subject_end_residue == self.subj_structure_length:
+        if self.subject_end_residue >= self.subj_structure_length:
             end_residue_number = self.subj_structure_length
         else:
-            add_residue = self.subject_end_residue - self.query_length
-            end_residue_number = max(self.subject_end_residue, self.subject_end_residue + add_residue)
-        return start_residue_number, end_residue_number
-
-    def both_unmatched(self):
-        left_add_residue = self.query_start_residue - 1
-        right_add_residue = self.subject_end_residue - self.query_length
-
-        if self.subject_end_residue == self.subj_structure_length:
-            end_residue_number = self.subject_end_residue
-            start_residue_number = min(1, self.subject_start_residue - left_add_residue)
-        elif self.subject_start_residue == 1:
-            start_residue_number = 1
-            end_residue_number = max(self.subj_structure_length, self.subject_end_residue + right_add_residue)
-        else:
-            start_residue_number = min(1, self.subject_start_residue - left_add_residue)
-            end_residue_number = max(self.subj_structure_length, self.subject_end_residue + right_add_residue)
-        return start_residue_number, end_residue_number
+            add_residue = self.query_length - self.query_end_residue
+            if self.subject_end_residue + add_residue <= self.subj_structure_length:
+                end_residue_number = self.subject_end_residue + add_residue
+            else:
+                end_residue_number = self.subj_structure_length
+        return end_residue_number
 
     def get_start_end_residue(self):
-        start_residue_number = 0
-        end_residue_number = 0
+        start_residue_number = self.subject_start_residue
+        end_residue_number = self.subject_end_residue
 
-        # query matched completely
-        if self.query_match_length == self.query_length:
-            start_residue_number, end_residue_number = self.full_matched()
-
-        # left-part missing
-        elif self.query_start_residue > 1 and self.query_end_residue == self.query_length:
-            start_residue_number, end_residue_number = self.left_unmatched()
+        # start-part missing
+        if self.query_start_residue > 1 and self.query_end_residue == self.query_length:
+            start_residue_number = self.left_unmatched()
 
         # right-part missing
         elif self.query_start_residue == 1 and self.query_end_residue < self.query_length:
-            start_residue_number, end_residue_number = self.right_unmatched()
+            end_residue_number = self.right_unmatched()
 
-        # both side missing and add pseudo structure part
-        elif self.query_start_residue > 1 and self.query_end_residue < self.query_length:
-            start_residue_number, end_residue_number = self.both_unmatched()
         return start_residue_number, end_residue_number
 
-    def extract_structure(self):
-        parser = MMCIFParser()
-        subj_structure = parser.get_structure("subject_structure", self.temp_cif_path)
-        output_subj_structure = Structure('output')
-        output_subj_model = Model(0)
-        output_subj_chain = Chain("A")
-        for chain in subj_structure.get_chains():
-            self.subj_structure_length = len([i for i in chain.get_residues()])
-            position = start_residue_number, end_residue_number = self.get_start_end_residue()
-            if 0 in position:
-                logger.debug('BUG HERE! - '+self.write_cif_path_kw[1])
-                input()
-                return
-            for residue in chain.get_residues():
-                if start_residue_number <= residue.id[1] <= end_residue_number:
-                    output_subj_chain.add(residue)
-            output_subj_model.add(output_subj_chain)
-        output_subj_structure.add(output_subj_model)
-        mean_plddt = round(self.get_plddt(output_subj_structure), 1)
-        if mean_plddt > 70:
-            write_cif_path = os.path.join(self.write_cif_path_kw[0],
-                                          '#'.join(self.write_cif_path_kw[1:] + ([str(mean_plddt)]))+'.cif')
-            io = MMCIFIO()
-            io.set_structure(output_subj_structure)
-            io.save(write_cif_path)
-            logger.info(f'Write structure file for {self.query_name} in {write_cif_path}.')
-            return write_cif_path
+    @staticmethod
+    def get_cif_dict(cif_path):
+        mmcif_dict = MMCIF2Dict()
+        cif_dict = mmcif_dict.parse(cif_path)
+        return cif_dict
+
+    def get_atom_site(self, start_residue_number, end_residue_number):
+        cif_dict = self.get_cif_dict(self.temp_cif_path)
+        start_num = []
+        end_num = []
+        cif_id = list(cif_dict.keys())[0]
+        for num, res_id in enumerate(cif_dict[cif_id]['_atom_site']['label_seq_id']):
+            if int(res_id) == start_residue_number:
+                start_num.append(num)
+            if int(res_id) == end_residue_number:
+                end_num.append(num)
+        return min(start_num), max(end_num)
+
+    def get_cif_info(self):
+        cif_dict = self.get_cif_dict(self.temp_cif_path)
+        cif_id = list(cif_dict.keys())[0]
+        self.subj_structure_length = int(cif_dict[cif_id]['_atom_site']['label_seq_id'][-1])
+        entry = cif_dict[cif_id]['_entry']
+        return cif_dict, cif_id, entry
+
+    @staticmethod
+    def extract_structure(cif_dict, cif_id, entry, start_residue_number, start_atom, end_atom):
+        atom_site_dict = {k: v for k, v in cif_dict[cif_id]['_atom_site'].items()}
+        output_cif = {cif_id: {'_entry': entry, '_atom_site': atom_site_dict}}
+        # extract structure
+        for k, v in output_cif[cif_id]['_atom_site'].items():
+            output_cif[cif_id]['_atom_site'][k] = v[start_atom:end_atom + 1]
+        for k, v in output_cif[cif_id]['_atom_site'].items():
+            if k == 'id':
+                output_cif[cif_id]['_atom_site'][k] = [str(i) for i in range(1, len(v)+1)]
+            if k in ('label_seq_id', 'auth_seq_id'):
+                output_cif[cif_id]['_atom_site'][k] = [int(i) - start_residue_number + 1 for i in v]
+        return output_cif
+
+    def get_output_structure(self):
+        cif_dict, cif_id, entry = self.get_cif_info()
+        start_residue_number, end_residue_number = self.get_start_end_residue()
+        start_atom, end_atom = self.get_atom_site(start_residue_number=start_residue_number, end_residue_number=end_residue_number)
+        output_cif = self.extract_structure(cif_dict=cif_dict, cif_id=cif_id, entry=entry, start_residue_number=start_residue_number,
+                                            start_atom=start_atom, end_atom=end_atom)
+        return output_cif, cif_id
+
+    def write_cif(self):
+        output_cif, cif_id = self.get_output_structure()
+        float_plddt = float(self.get_plddt_dict(output_cif, cif_id))
+        mean_plddt = round(float_plddt, 1)
+        write_cif_path = os.path.join(self.write_cif_path_kw[0],
+                                      '#'.join(self.write_cif_path_kw[1:] + ([str(mean_plddt)])) + '.cif'
+                                      )
+        writer = CifFileWriter(write_cif_path)
+        writer.write(output_cif)
+        return write_cif_path
 
     def run(self):
-        write_cif_path = self.extract_structure()
+        write_cif_path = self.write_cif()
         os.remove(self.temp_cif_path)
         return write_cif_path

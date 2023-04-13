@@ -153,22 +153,22 @@ def process_structure(struct_path):
 
 
 def write_to_csv(struct_dir, results_output):
-    struct_path_list = [os.path.join(struct_dir, i) for i in os.listdir(struct_dir)]
+    struct_path_list = [os.path.join(struct_dir, i) for i in os.listdir(struct_dir) if os.path.splitext(i)[1] == '.cif']
     total = len(struct_path_list)
     with open(results_output, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(['', 'helix', 'sheet', 'loop', 'turn', 'bend', 'bridge', 'hbond_density',
                          'hbond_avg_energy', 'apolar', 'polar', 'positive', 'negative',
                          'polar_area', 'apolar_area'])
-    for struct_path in tqdm(struct_path_list, desc='Progress', unit='step'):
-        struct_name = os.path.split(struct_path)[1].split('.')[0]
-        results = process_structure(struct_path)
-        writer.writerow([struct_name]+[str(value) for subdict in results.values() for value in subdict.values()])
-
+        for struct_path in tqdm(struct_path_list, desc='Progress', unit='step'):
+            struct_name = os.path.split(struct_path)[1].split('.')[0]
+            results = process_structure(struct_path)
+            writer.writerow([struct_name]+[str(value) for subdict in results.values() for value in subdict.values()])
+    print('Done for ', struct_path)
 
 if __name__ == '__main__':
-    struct_dir = r'D:\subject\active\1-qProtein\data\tibet\structure90'
-    results_output = r'D:\subject\active\1-qProtein\data\tibet\structure90_results.csv'
+    struct_dir = r'D:\subject\active\1-qProtein\data\manure\structure'
+    results_output = r'D:\subject\active\1-qProtein\data\manure\structure_results.csv'
     write_to_csv(struct_dir, results_output)
 
 
