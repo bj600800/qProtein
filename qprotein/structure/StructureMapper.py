@@ -2,7 +2,6 @@ import json
 import os
 import threading
 from queue import Queue
-from tqdm import tqdm
 import requests
 from requests.adapters import Retry
 import multiprocessing
