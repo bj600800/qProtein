@@ -134,11 +134,11 @@ def get_electrostatics():
     pass
 
 
-def process_structure(struct_path):
+def process_structure(struct_path, dssp):
     """
     Iterate every structure for process.
     """
-    dssp = r'D:\subject\active\1-qProtein\code\qprotein\structure\tools\dssp\dssp-3.0.0-win32.exe'
+
     if struct_path.split('.')[-1] == 'cif':
         dssp_dat = get_dssp_cif(struct_path, dssp)
         pdb_file = cif2pdb(struct_path)
@@ -152,7 +152,7 @@ def process_structure(struct_path):
     return {'ss_content': ss_content, 'hbond': hbond, 'surface': surface, 'sasa': sasa}
 
 
-def write_to_csv(struct_dir, results_output):
+def write_to_csv(struct_dir, results_output, dssp):
     struct_path_list = [os.path.join(struct_dir, i) for i in os.listdir(struct_dir) if os.path.splitext(i)[1] == '.cif']
     with open(results_output, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
@@ -162,7 +162,7 @@ def write_to_csv(struct_dir, results_output):
         for struct_path in tqdm(struct_path_list, desc='Progress', unit='step'):
             try:
                 struct_name = os.path.split(struct_path)[1].split('.')[0]
-                results = process_structure(struct_path)
+                results = process_structure(struct_path, dssp)
                 writer.writerow([struct_name]+[str(value) for subdict in results.values() for value in subdict.values()])
             except ValueError:
                 continue
@@ -171,7 +171,8 @@ def write_to_csv(struct_dir, results_output):
 if __name__ == '__main__':
     struct_dir = r'D:\subject\active\1-qProtein\data\manure\structure'
     results_output = r'D:\subject\active\1-qProtein\data\manure\structure_results.csv'
-    write_to_csv(struct_dir, results_output)
+    dssp = r'D:\subject\active\1-qProtein\tools\dssp\dssp-3.0.0-win32.exe'
+    write_to_csv(struct_dir, results_output, dssp)
 
 
 

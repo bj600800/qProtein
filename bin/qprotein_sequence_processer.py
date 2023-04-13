@@ -83,7 +83,7 @@ def insert_query_length(task_name, summary_sql_path, fasta_sql_path):
 
 def run():
     root_dir = r"D:\subject\active\1-qProtein\data"
-    task_name = "manure"
+    task_name = "tibet"
     work_dir = os.path.join(root_dir, task_name)
     if not os.path.exists(work_dir):
         logger.info('Create dir', work_dir)
@@ -91,7 +91,7 @@ def run():
     summary_sql_path = os.path.join(work_dir, 'qprotein_results.db')
     uniprot_db = os.path.join(root_dir, 'qprotein_db.db')
 
-    sprot_dmnd_output = os.path.join(work_dir, 'sprot_70_200_90.out')
+    sprot_dmnd_output = os.path.join(work_dir, 'trembl_70_200_90.out')
     trembl_dmnd_output = os.path.join(work_dir, 'trembl_70_200_90.out')
     cazy_output = os.path.join(work_dir, 'cazy_overview.txt')
     merops_output = os.path.join(work_dir, 'merops.out')
