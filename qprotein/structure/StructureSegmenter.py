@@ -138,7 +138,9 @@ class Segmenter:
             self.subj_structure_length = len([i for i in chain.get_residues()])
             position = start_residue_number, end_residue_number = self.get_start_end_residue()
             if 0 in position:
-                return logger.debug('BUG HERE!')
+                logger.debug('BUG HERE! - '+self.write_cif_path_kw[1])
+                input()
+                return
             for residue in chain.get_residues():
                 if start_residue_number <= residue.id[1] <= end_residue_number:
                     output_subj_chain.add(residue)
