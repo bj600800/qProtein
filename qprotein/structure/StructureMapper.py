@@ -26,7 +26,7 @@ class TargetNameRetriever(SqlSearch):
                   "sprot_query_start, sprot_query_end, sprot_subject_start, sprot_subject_end," \
                   "trembl_acc, trembl_ident, trembl_cover, trembl_match_length, trembl_query_start," \
                   "trembl_query_end, trembl_subject_start, trembl_subject_end  " \
-                  "FROM results_summary WHERE sprot_acc != '' or trembl_acc != '' LIMIT 20"
+                  "FROM results_summary WHERE sprot_acc != '' or trembl_acc != ''"
         results_list = self.fetch_results(cursor=cursor, sql_cmd=sql_cmd)
         return results_list
 
@@ -151,6 +151,9 @@ class Consumer(threading.Thread):
                               )
         write_cif_path = segmenter.run()
         return write_cif_path
+
+    def insert_sql(self, info):
+        pass
 
     def run(self):
         while True:
