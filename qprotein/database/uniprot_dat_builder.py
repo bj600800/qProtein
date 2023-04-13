@@ -121,6 +121,7 @@ class UniprotSql(SqlBuilder):
         logger.info(f"Total records:" + str(self.total_records))
 
     def run(self):
+        columns = [i[0] for i in self.column_definition]
         logger.info(f"Start to create SQL table: {self.table_name} in SQL file {self.sql_path}")
         logger.info(f"Create SQL table: {self.table_name}")
         cursor = self.create_table(self.table_name, self.sql_path, self.column_definition)
@@ -129,7 +130,7 @@ class UniprotSql(SqlBuilder):
         self.parse_dat(cursor)
 
         logger.info(f'Create index for SQL table: {self.table_name}')
-        self.create_index(cursor)
+        self.create_index(cursor=cursor, columns=columns)
 
         logger.info(f'Successfully built SQL database for {self.table_name}')
 

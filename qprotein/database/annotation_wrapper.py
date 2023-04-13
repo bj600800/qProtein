@@ -30,10 +30,10 @@ class SprotDmnd(SqlBuilder, SqlSearch):
     def __init__(self, dmnd_output, summary_sql_path):
         super().__init__(sql_db=summary_sql_path, table_name="results_summary",
                          column_definition=[('query_name', 'TEXT'), ('sprot_acc', 'TEXT'),
-                                            ('sprot_ident', 'FLOAT'), ('sprot_match_length', 'INT'),
-                                            ('sprot_query_start', 'INT'), ('sprot_query_end', 'INT'),
-                                            ('sprot_subject_start', 'INT'), ('sprot_subject_end', 'INT'),
-                                            ('sprot_cover', 'FLOAT'), ('sprot_evalue', 'FLOAT')])
+                                            ('sprot_ident', 'FLOAT'), ('sprot_cover', 'FLOAT'),
+                                            ('sprot_match_length', 'INT'), ('sprot_query_start', 'INT'),
+                                            ('sprot_query_end', 'INT'), ('sprot_subject_start', 'INT'),
+                                            ('sprot_subject_end', 'INT'), ('sprot_evalue', 'FLOAT')])
         self.dmnd_output = dmnd_output
         self.summary_sql_path = summary_sql_path
         self.idx_name_prefix = 'sprot'
@@ -183,10 +183,11 @@ class TremblDmnd(SprotDmnd):
         self.dmnd_output = dmnd_output
         self.summary_sql_path = summary_sql_path
         self.column_definition = [('query_name', 'TEXT'), ('trembl_acc', 'TEXT'),
-                                  ('trembl_ident', 'FLOAT'), ('trembl_match_length', 'INT'),
-                                  ('trembl_query_start', 'INT'), ('trembl_query_end', 'INT'),
-                                  ('trembl_subject_start', 'INT'), ('trembl_subject_end', 'INT'),
-                                  ('trembl_cover', 'FLOAT'), ('trembl_evalue', 'FLOAT')]
+                                  ('trembl_ident', 'FLOAT'), ('trembl_cover', 'FLOAT'),
+                                  ('trembl_match_length', 'INT'), ('trembl_query_start', 'INT'),
+                                  ('trembl_query_end', 'INT'), ('trembl_subject_start', 'INT'),
+                                  ('trembl_subject_end', 'INT'), ('trembl_evalue', 'FLOAT')]
+
         self.idx_name_prefix = 'trembl'
         self.record_items = {column_name[0]: '' for column_name in self.column_definition}
         self.records = []

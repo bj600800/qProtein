@@ -1,10 +1,12 @@
-#!/usr/bin/env python           
-# -*- coding:utf-8 -*-          
-# @Filename:    service.py      
-# @Author:      Eric Dou        
-# @Time:        2022/4/18 8:52 
+"""
+# ------------------------------------------------------------------------------
+# Author:    Zhixin Dou
+# Email:     bj600800@gmail.com
+# DATE:      2023/03/13
 
-"""for service, batch analysis for alphafold"""
+# Description: parse
+# ------------------------------------------------------------------------------
+"""
 
 import argparse
 import json
@@ -77,7 +79,6 @@ class Extractor:
             'Sequence length': self.get_len(),
             'pLDDT from local': self.extract_plddt(),
             }
-
         df = pd.DataFrame.from_dict(self.info)
         csv_path = os.path.join(self.output_dir, 'results', 'data.csv')
         df.to_csv(csv_path, sep=',')
