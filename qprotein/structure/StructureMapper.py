@@ -265,6 +265,8 @@ def main(summary_results_db, structure_dir_path, log_file):
     for t in producer_thread_list:
         t.join()
 
+    logger.info('All threads for StructureMapper finished')
+
 
 if __name__ == "__main__":
     work_dir = r'D:\subject\active\1-qProtein\data\manure'

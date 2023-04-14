@@ -166,7 +166,7 @@ def write_to_csv(struct_dir, results_output, dssp):
                 writer.writerow([struct_name]+[str(value) for subdict in results.values() for value in subdict.values()])
             except ValueError:
                 continue
-    print('Done for ', struct_path)
+
 
 if __name__ == '__main__':
     struct_dir = r'D:\subject\active\1-qProtein\data\manure\structure'

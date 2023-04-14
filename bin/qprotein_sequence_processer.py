@@ -33,7 +33,7 @@ def insert_sprot(dmnd_output, summary_sql_path):
 
 def annotate_sprot(uniprot_db, summary_sql_path):
     try:
-        sprot_dat = annotation_wrapper.SprotAnnotation(uniprot_db=uniprot_db,summary_sql_path=summary_sql_path)
+        sprot_dat = annotation_wrapper.SprotAnnotation(uniprot_db=uniprot_db, summary_sql_path=summary_sql_path)
         sprot_dat.run()
     except Exception as e:
         logger.debug(e)
@@ -74,8 +74,8 @@ def insert_merops(merops_output, summary_sql_path):
 def insert_query_length(task_name, summary_sql_path, fasta_sql_path):
     try:
         query_length = annotation_wrapper.QueryAnalysis(task_name=task_name, summary_sql_path=summary_sql_path,
-                                                          fasta_sql_path=fasta_sql_path
-                                                          )
+                                                        fasta_sql_path=fasta_sql_path
+                                                        )
         query_length.run()
     except Exception as e:
         logger.error("Got an exception!", e)
@@ -91,7 +91,7 @@ def run():
     summary_sql_path = os.path.join(work_dir, 'qprotein_results.db')
     uniprot_db = os.path.join(root_dir, 'qprotein_db.db')
 
-    sprot_dmnd_output = os.path.join(work_dir, 'trembl_70_200_90.out')
+    sprot_dmnd_output = os.path.join(work_dir, 'sprot_70_200_90.out')
     trembl_dmnd_output = os.path.join(work_dir, 'trembl_70_200_90.out')
     cazy_output = os.path.join(work_dir, 'cazy_overview.txt')
     merops_output = os.path.join(work_dir, 'merops.out')
@@ -106,4 +106,5 @@ def run():
     insert_query_length(task_name=task_name, summary_sql_path=summary_sql_path, fasta_sql_path=uniprot_db)
 
 
-run()
+if __name__ == '__main__':
+    run()
