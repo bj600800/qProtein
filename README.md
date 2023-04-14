@@ -7,4 +7,5 @@ An automated platform for the analysis and quantification of protein structure-o
 
 ## Building from source
 `pip install -r requirements.txt`
+
 `pip install qprotein` (TODO)
