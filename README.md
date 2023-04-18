@@ -1,5 +1,5 @@
 # qProtein
-An automate platform for Protein structure omics analysis with quantification.
+An automated platform for the analysis and quantification of protein structure-omics.
 
 ## Requirements
 - gcc
@@ -7,3 +7,5 @@ An automate platform for Protein structure omics analysis with quantification.
 
 ## Building from source
 `pip install -r requirements.txt`
+
+`pip install qprotein` (TODO)
