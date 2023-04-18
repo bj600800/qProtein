@@ -29,11 +29,6 @@ class TargetNameRetriever(SqlSearch):
                   "trembl_acc, trembl_ident, trembl_cover, trembl_match_length, trembl_query_start," \
                   "trembl_query_end, trembl_subject_start, trembl_subject_end  " \
                   "FROM results_summary WHERE sprot_acc != '' or trembl_acc != ''"
-        # sql_cmd = "SELECT query_name, seq_length, sprot_acc, sprot_ident, sprot_cover, sprot_match_length," \
-        #           "sprot_query_start, sprot_query_end, sprot_subject_start, sprot_subject_end," \
-        #           "trembl_acc, trembl_ident, trembl_cover, trembl_match_length, trembl_query_start," \
-        #           "trembl_query_end, trembl_subject_start, trembl_subject_end  " \
-        #           "FROM results_summary WHERE query_name == 'Sum14_k97_472745_1_1'"
 
         results_list = self.fetch_results(cursor=cursor, sql_cmd=sql_cmd)
         return results_list
@@ -56,7 +51,6 @@ class TargetNameRetriever(SqlSearch):
             return []
 
     def filter_results(self):
-        # concerned features: identity, coverage
         exist_query_name = self.get_exist_query()
         invalid_query_name = self.get_NO_structure_query()
         results_list = [result for result in self.get_sql_results()
@@ -70,18 +64,18 @@ class TargetNameRetriever(SqlSearch):
                 sprot_quality = (result[3], result[4])
                 trembl_quality = (result[11], result[12])
                 if sum(sprot_quality) >= sum(trembl_quality):
-                    query_info.append(result[:10])
+                    query_info.append(result[:10] + ("sprot",))
                 else:
-                    query_info.append(result[:2] + result[10:])
+                    query_info.append(result[:2] + result[10:] + ("trembl",))
             elif result[2] is not None:
-                query_info.append(result[:10])
+                query_info.append(result[:10] + ("sprot",))
             elif result[10] is not None:
-                query_info.append(result[:2] + result[10:])
+                query_info.append(result[:2] + result[10:] + ("trembl",))
         return query_info
 
 
 def start_request_session():
-    retries = Retry(total=3, backoff_factor=0.5, status_forcelist=[500, 502, 503, 504])
+    retries = Retry(total=3, backoff_factor=0.5, status_forcelist=[429, 500, 502, 503, 504])
     session = requests.Session()
     session.mount('http://', requests.adapters.HTTPAdapter(max_retries=retries))
     session.mount('https://', requests.adapters.HTTPAdapter(max_retries=retries))
@@ -109,13 +103,13 @@ class Producer(threading.Thread):
     def check_response(self, response, uniprot_acc, log_file):
         try:
             response.raise_for_status()
-        except requests.HTTPError as e:
+        except requests.HTTPError:
             if response.status_code == 404:
                 self.get_existed_invalid_uniprot()
                 if uniprot_acc not in self.exist_invalid_name:
                     with open(log_file, 'a+') as wf:
                         wf.write(uniprot_acc+'\n')
-            logger.debug(e)
+            logger.debug(f"Not found structure for {uniprot_acc}")
 
     def get_cif_url(self, uniprot_acc):
         headers = {
@@ -176,7 +170,7 @@ class Consumer(threading.Thread):
         except requests.HTTPError as e:
             logger.debug(e)
 
-    def request_structure(self, uniprot_acc, url):
+    def request_structure(self, url):
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36",
             "From": "bj600800@gmail.com"  # ALLWAYS TELL WHO YOU ARE
@@ -189,16 +183,20 @@ class Consumer(threading.Thread):
 
     def map_structure(self, cif_str, query_info):
         query_name, query_length, uniprot_acc, identity, coverage, query_match_length, query_start_residue, \
-            query_end_residue, subject_start_residue, subject_end_residue = query_info
+            query_end_residue, subject_start_residue, subject_end_residue, uniprot_class = query_info
 
         write_cif_path_kw = [self.structure_dir_path, query_name, uniprot_acc]
         segmenter = Segmenter(cif_string=cif_str, query_name=query_name, subject_start_residue=subject_start_residue,
                               subject_end_residue=subject_end_residue, query_start_residue=query_start_residue,
                               query_end_residue=query_end_residue, query_match_length=query_match_length,
-                              query_length=query_length, write_cif_path_kw=write_cif_path_kw
+                              query_length=query_length, write_cif_path_kw=write_cif_path_kw, uniprot_class=uniprot_class
                               )
-        write_cif_path = segmenter.run()
-        return write_cif_path
+        # print(uniprot_acc)
+        try:
+            write_cif_path = segmenter.run()
+            return write_cif_path
+        except:
+            return
 
     def insert_sql(self, info):
         pass
@@ -206,9 +204,8 @@ class Consumer(threading.Thread):
     def run(self):
         while True:
             query_info, structure_info = self.structure_info_queue.get()
-            uniprot_acc = structure_info["uniprot_acc"]
             url = structure_info["url"]
-            cif_str = self.request_structure(uniprot_acc=uniprot_acc, url=url)
+            cif_str = self.request_structure(url=url)
             write_cif_path = self.map_structure(cif_str=cif_str, query_info=query_info)
             logger.info(f'Write {query_info[0]} structure: {write_cif_path}')
             if self.structure_info_queue.empty() and self.query_info_queue.empty():
@@ -233,7 +230,6 @@ def get_producer_comsumer_num():
 def main(summary_results_db, structure_dir_path, log_file):
     if not os.path.exists(structure_dir_path):
         os.mkdir(structure_dir_path)
-
     query_info_queue = Queue(maxsize=0)
     structure_info_queue = Queue(maxsize=0)
     target_handler = TargetNameRetriever(summary_results_db=summary_results_db, structure_dir_path=structure_dir_path,
@@ -242,7 +238,6 @@ def main(summary_results_db, structure_dir_path, log_file):
     logger.info(f'Found {len(query_info)} targets to map structure.')
     for info in query_info:
         query_info_queue.put(info)
-
     producer_thread, consumer_thread = get_producer_comsumer_num()
     logger.info(f'We have {producer_thread} thread(s) for producer and {consumer_thread} thread(s) for consumer.')
 
@@ -269,8 +264,12 @@ def main(summary_results_db, structure_dir_path, log_file):
 
 
 if __name__ == "__main__":
-    work_dir = r'D:\subject\active\1-qProtein\data\manure'
-    sql_db = os.path.join(work_dir, 'qprotein_results.db')
+    root_dir = r"D:\subject\active\1-qProtein\data"
+    task_name = ["tibet", "manure"]
+    work_dir = os.path.join(root_dir, task_name[0])
     structure_dir_path = os.path.join(work_dir, 'structure')
+    sql_db = os.path.join(work_dir, 'qprotein_results.db')
     log_file = os.path.join(work_dir, '404NotFoundURL.txt')
     main(sql_db, structure_dir_path, log_file)
+
+

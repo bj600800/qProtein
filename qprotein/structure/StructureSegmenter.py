@@ -14,32 +14,29 @@
 
 import tempfile
 import os
-import io
 from numpy import mean
 from pdbecif.mmcif_tools import MMCIF2Dict
 from pdbecif.mmcif_io import CifFileWriter
 from qprotein.utilities import logger
-
 logger = logger.setup_log(name=__name__)
 
 
 class Segmenter:
     def __init__(self, cif_string, query_name, subject_start_residue, subject_end_residue, query_start_residue,
-                 query_end_residue, query_match_length, query_length, write_cif_path_kw):
+                 query_end_residue, query_match_length, query_length, write_cif_path_kw, uniprot_class):
         self.cif_dict = None
         self.temp_cif_path = None
         self.subj_structure_length = None
-        self.output_plddt = None
         self.query_name = query_name
         self.cif_string = cif_string
-        self.subject_start_residue = subject_start_residue
-        self.subject_end_residue = subject_end_residue
-        self.query_start_residue = query_start_residue
-        self.query_end_residue = query_end_residue
-        self.query_match_length = query_match_length
-        self.query_length = query_length
+        self.subject_start_residue = int(subject_start_residue)
+        self.subject_end_residue = int(subject_end_residue)
+        self.query_start_residue = int(query_start_residue)
+        self.query_end_residue = int(query_end_residue)
+        self.query_match_length = int(query_match_length)
+        self.query_length = int(query_length)
         self.write_cif_path_kw = write_cif_path_kw
-
+        self.uniprot_class = uniprot_class
         self.dict_to_file()
 
     def dict_to_file(self):
@@ -67,48 +64,44 @@ class Segmenter:
     def get_plddt_dict(self, mmcif_dict, cif_id):
         bfactor = [float(i) for i in mmcif_dict[cif_id]['_atom_site']['B_iso_or_equiv']]
         avg_plddt = mean(bfactor)
-        self.subj_structure_length = len(bfactor)
         return avg_plddt
 
-    def full_matched(self):
-        start_residue_number = self.subject_start_residue
-        end_residue_number = self.subject_end_residue
-        return start_residue_number, end_residue_number
-
     def left_unmatched(self):
-        if self.subject_start_residue == 1:
-            start_residue_number = 1
+        # print("###left_unmatched")
+        add_residue = self.query_start_residue - 1
+        if self.subject_start_residue - add_residue > 0:
+            start_residue_number = self.subject_start_residue - add_residue
         else:
-            add_residue = self.query_start_residue - 1
-            if self.subject_start_residue - add_residue >= 1:
-                start_residue_number = self.subject_start_residue - add_residue
-            else:
-                start_residue_number = 1
+            start_residue_number = 1
         return start_residue_number
 
     def right_unmatched(self):
-        if self.subject_end_residue >= self.subj_structure_length:
-            end_residue_number = self.subj_structure_length
+        # print("###right_unmatched")
+        add_residue = self.query_length - self.query_end_residue
+        if self.subject_end_residue + add_residue <= self.subj_structure_length:
+            end_residue_number = self.subject_end_residue + add_residue
         else:
-            add_residue = self.query_length - self.query_end_residue
-            if self.subject_end_residue + add_residue <= self.subj_structure_length:
-                end_residue_number = self.subject_end_residue + add_residue
-            else:
-                end_residue_number = self.subj_structure_length
+            end_residue_number = self.subj_structure_length
         return end_residue_number
 
     def get_start_end_residue(self):
         start_residue_number = self.subject_start_residue
         end_residue_number = self.subject_end_residue
-
         # start-part missing
-        if self.query_start_residue > 1 and self.query_end_residue == self.query_length:
+        if self.query_start_residue > 1:
             start_residue_number = self.left_unmatched()
 
         # right-part missing
-        elif self.query_start_residue == 1 and self.query_end_residue < self.query_length:
+        if self.query_end_residue < self.query_length:
             end_residue_number = self.right_unmatched()
-
+        # print("query_name", self.query_name)
+        # print("query_start", self.query_start_residue)
+        # print("query_end", self.query_end_residue)
+        # print("query_length", self.query_length)
+        # print("subj_start", self.subject_start_residue)
+        # print("subj_end", self.subject_end_residue)
+        # print("subj_length", self.subj_structure_length)
+        # print(start_residue_number, end_residue_number)
         return start_residue_number, end_residue_number
 
     @staticmethod
@@ -162,12 +155,15 @@ class Segmenter:
         output_cif, cif_id = self.get_output_structure()
         float_plddt = float(self.get_plddt_dict(output_cif, cif_id))
         mean_plddt = round(float_plddt, 1)
-        write_cif_path = os.path.join(self.write_cif_path_kw[0],
-                                      '#'.join(self.write_cif_path_kw[1:] + ([str(mean_plddt)])) + '.cif'
-                                      )
-        writer = CifFileWriter(write_cif_path)
-        writer.write(output_cif)
-        return write_cif_path
+        if mean_plddt >= 70:
+            write_cif_path = os.path.join(self.write_cif_path_kw[0],
+                                          '#'.join([self.uniprot_class] + self.write_cif_path_kw[1:] + ([str(mean_plddt)])) + '.cif'
+                                          )
+            writer = CifFileWriter(write_cif_path)
+            writer.write(output_cif)
+            return write_cif_path
+        else:
+            return "pLDDT low"
 
     def run(self):
         write_cif_path = self.write_cif()

@@ -1,22 +1,21 @@
-#!/usr/bin/env python           
-# -*- coding:utf-8 -*-          
-# @Filename:    pdb_parser.py      
-# @Author:      Eric Dou        
-# @Time:        2021/5/27 9:02 
+"""
+# ------------------------------------------------------------------------------
+# Author:    Zhixin Dou
+# Email:     bj600800@gmail.com
+# DATE:      2023/04/14
 
-"""Function: Information extraction from .pdb file, i.e. sequence, dss, etc."""
+# Description: Structure quantitative characterization
+# ------------------------------------------------------------------------------
+"""
 import os
-import csv
-from Bio.PDB import MMCIFParser
-from Bio.PDB.DSSP import DSSP
-import pdb2pqr
-from tqdm import tqdm
-import freesasa
 import io
+import csv
+from tqdm import tqdm
 
-from Bio.PDB.MMCIF2Dict import MMCIF2Dict
+from Bio.PDB import MMCIFParser, PDBParser
 from Bio.PDB.PDBIO import PDBIO
-from Bio.PDB import PDBParser, MMCIFIO
+from Bio.PDB.DSSP import DSSP
+import freesasa
 
 
 def get_dssp_cif(struct_path, dssp_path):
@@ -152,7 +151,7 @@ def process_structure(struct_path, dssp):
     return {'ss_content': ss_content, 'hbond': hbond, 'surface': surface, 'sasa': sasa}
 
 
-def write_to_csv(struct_dir, results_output, dssp):
+def write_results(struct_dir, results_output, dssp):
     struct_path_list = [os.path.join(struct_dir, i) for i in os.listdir(struct_dir) if os.path.splitext(i)[1] == '.cif']
     with open(results_output, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
@@ -161,18 +160,23 @@ def write_to_csv(struct_dir, results_output, dssp):
                          'polar_area', 'apolar_area'])
         for struct_path in tqdm(struct_path_list, desc='Progress', unit='step'):
             try:
-                struct_name = os.path.split(struct_path)[1].split('.')[0]
-                results = process_structure(struct_path, dssp)
-                writer.writerow([struct_name]+[str(value) for subdict in results.values() for value in subdict.values()])
+                if os.stat(struct_path).st_size != 0:
+                    struct_name = os.path.split(struct_path)[1].split('.')[0]
+                    results = process_structure(struct_path, dssp)
+                    writer.writerow([struct_name]+[str(value) for subdict in results.values() for value in subdict.values()])
             except ValueError:
                 continue
 
 
 if __name__ == '__main__':
-    struct_dir = r'D:\subject\active\1-qProtein\data\manure\structure'
-    results_output = r'D:\subject\active\1-qProtein\data\manure\structure_results.csv'
+    task_name = 'manure'
+    root_dir = r"D:\subject\active\1-qProtein\data"
     dssp = r'D:\subject\active\1-qProtein\tools\dssp\dssp-3.0.0-win32.exe'
-    write_to_csv(struct_dir, results_output, dssp)
+    task_dir = os.path.join(root_dir, task_name)
+    struct_dir = os.path.join(task_dir, 'high_plddt')
+    results_output = os.path.join(task_dir, 'structure_results.csv')
+
+    write_results(struct_dir, results_output, dssp)
 
 
 

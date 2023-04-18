@@ -19,7 +19,6 @@ logger = logger.setup_log(name=__name__)
 class FastaSql(SqlBuilder):
     def __init__(self, fasta_file, sql_db, table_name, column_definition):
         super(FastaSql, self).__init__(sql_db, table_name, column_definition)
-
         self.fasta_file = fasta_file
 
         self.record_items = {column_name[0]: '' for column_name in self.column_definition}
@@ -37,22 +36,25 @@ class FastaSql(SqlBuilder):
         self.record_counter += 1
         self.total_records += 1
 
-    def parse_fasta(self, cursor):
+    def parse_fasta(self, cursor, columns):
         for seq_record in SeqIO.parse(self.fasta_file, "fasta"):
             if self.record_counter == 500000:
-                self.insert_many(cursor, self.records, 2)
-                logger.info(f"Insert 500000 records into {self.table_name}, total records:" + str(self.total_records))
-
+                self.insert_many_columns(cursor=cursor, values_num=2,
+                                         columns=columns, records=self.records
+                                         )
+                logger.info(f"Insert 500000 records. Total records:" + str(self.total_records))
                 self.records = []
                 self.record_counter = 0
-
+                self.format_records(seq_record)
             else:
                 self.format_records(seq_record)
 
             # Insert the remaining records
         if self.record_counter > 0:
-            logger.info(f"Insert {self.record_counter} records into {self.table_name}")
-            self.insert_many(cursor, self.records, 2)
+            self.insert_many_columns(cursor=cursor, values_num=2,
+                                     columns=columns, records=self.records
+                                     )
+            logger.info(f"Update {self.record_counter} records")
 
         logger.info(f"Total records:" + str(self.total_records))
 
@@ -66,7 +68,7 @@ class FastaSql(SqlBuilder):
         cursor = self.create_table(self.table_name, self.sql_path, sql)
 
         logger.info(f"Parse file and insert records into {self.table_name}")
-        self.parse_fasta(cursor)
+        self.parse_fasta(cursor, columns)
 
         logger.info(f'Creating index for SQL table: {self.table_name}')
         self.create_index(cursor, columns)

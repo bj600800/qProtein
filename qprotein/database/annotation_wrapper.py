@@ -279,7 +279,6 @@ class CazyAnalysis(SqlBuilder):
 
                 self.records = []
                 self.record_counter = 0
-
             else:
                 self.format_records(line)
 
@@ -292,7 +291,7 @@ class CazyAnalysis(SqlBuilder):
         logger.info(f"Total records:" + str(self.total_records))
 
     def run(self):
-        logger.info(f"Parse cazy output and insert records")
+        logger.info(f"Parse Cazy output and insert records")
         columns = [i[0] for i in self.column_definition]
         cursor = self.connect_sql(sql_db=self.sql_path)
         self.add_column(cursor=cursor, table_name='results_summary', column_definition=self.column_definition)
@@ -406,6 +405,7 @@ class QueryAnalysis(SqlBuilder, SqlSearch):
         if self.record_counter > 0:
             self.update_many_columns(cursor=cursor, table_name="results_summary", columns=columns, records=self.records)
             logger.info(f"Update {self.record_counter} records")
+        logger.info(f"Total records:" + str(self.total_records))
 
     def run(self):
         logger.info(f"Add query_length for each sequence")

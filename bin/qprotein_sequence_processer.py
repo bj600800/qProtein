@@ -82,8 +82,8 @@ def insert_query_length(task_name, summary_sql_path, fasta_sql_path):
 
 
 def run():
-    root_dir = r"D:\subject\active\1-qProtein\data"
     task_name = "tibet"
+    root_dir = r"D:\subject\active\1-qProtein\data"
     work_dir = os.path.join(root_dir, task_name)
     if not os.path.exists(work_dir):
         logger.info('Create dir', work_dir)
