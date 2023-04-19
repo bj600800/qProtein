@@ -4,3 +4,4 @@ pandas
 pdbecif
 freesasa
 tqdm
+pdbecif

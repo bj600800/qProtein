@@ -163,7 +163,7 @@ class Segmenter:
             writer.write(output_cif)
             return write_cif_path
         else:
-            return "pLDDT low"
+            return f"Low average pLDDT -> {mean_plddt}"
 
     def run(self):
         write_cif_path = self.write_cif()

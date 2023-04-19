@@ -1,6 +1,8 @@
 import json
 import os
 import threading
+import time
+import random
 from queue import Queue
 import requests
 from requests.adapters import Retry
@@ -23,7 +25,7 @@ class TargetNameRetriever(SqlSearch):
         self.log_file = log_file
 
     def get_sql_results(self):
-        cursor = self.connect_sql(sql_db=sql_db)
+        cursor = self.connect_sql(sql_db=self.sql_db)
         sql_cmd = "SELECT query_name, seq_length, sprot_acc, sprot_ident, sprot_cover, sprot_match_length," \
                   "sprot_query_start, sprot_query_end, sprot_subject_start, sprot_subject_end," \
                   "trembl_acc, trembl_ident, trembl_cover, trembl_match_length, trembl_query_start," \
@@ -96,8 +98,8 @@ class Producer(threading.Thread):
         self.exist_invalid_name = []
 
     def get_existed_invalid_uniprot(self):
-        if os.path.exists(log_file):
-            with open(log_file, 'r') as rf:
+        if os.path.exists(self.log_file):
+            with open(self.log_file, 'r') as rf:
                 self.exist_invalid_name = [i.strip() for i in rf.readlines()]
 
     def check_response(self, response, uniprot_acc, log_file):
@@ -119,6 +121,7 @@ class Producer(threading.Thread):
         base_url = self.base_url
         session = start_request_session()
         r = session.get(url=base_url + uniprot_acc + '.json?provider=alphafold', headers=headers)
+        time.sleep(random.uniform(1, 3))  # DO NOT ABUSE THE SERVER
         self.check_response(r, uniprot_acc=uniprot_acc, log_file=self.log_file)
         ret_json = json.loads(r.content)
         return ret_json
@@ -173,11 +176,12 @@ class Consumer(threading.Thread):
     def request_structure(self, url):
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36",
-            "From": "bj600800@gmail.com"  # ALLWAYS TELL WHO YOU ARE
+            "From": "bj600800@gmail.com"  # ALLWAYS TELL the SERVER WHO YOU ARE
             }
         session = start_request_session()
         response = session.get(url, headers=headers)
         self.check_response(response=response)
+        time.sleep(random.uniform(1, 3))  # DO NOT ABUSE THE SERVER
         cif_str = response.content.decode('utf-8')
         return cif_str
 
@@ -195,6 +199,7 @@ class Consumer(threading.Thread):
         try:
             write_cif_path = segmenter.run()
             return write_cif_path
+
         except:
             return
 
@@ -227,7 +232,7 @@ def get_producer_comsumer_num():
     return 1, 1
 
 
-def main(summary_results_db, structure_dir_path, log_file):
+def map_multiprocess(summary_results_db, structure_dir_path, log_file):
     if not os.path.exists(structure_dir_path):
         os.mkdir(structure_dir_path)
     query_info_queue = Queue(maxsize=0)
@@ -236,7 +241,7 @@ def main(summary_results_db, structure_dir_path, log_file):
                                          log_file=log_file)
     query_info = target_handler.filter_results()
     logger.info(f'Found {len(query_info)} targets to map structure.')
-    for info in query_info:
+    for info in query_info[300000:]:
         query_info_queue.put(info)
     producer_thread, consumer_thread = get_producer_comsumer_num()
     logger.info(f'We have {producer_thread} thread(s) for producer and {consumer_thread} thread(s) for consumer.')
@@ -261,15 +266,3 @@ def main(summary_results_db, structure_dir_path, log_file):
         t.join()
 
     logger.info('All threads for StructureMapper finished')
-
-
-if __name__ == "__main__":
-    root_dir = r"D:\subject\active\1-qProtein\data"
-    task_name = ["tibet", "manure"]
-    work_dir = os.path.join(root_dir, task_name[0])
-    structure_dir_path = os.path.join(work_dir, 'structure')
-    sql_db = os.path.join(work_dir, 'qprotein_results.db')
-    log_file = os.path.join(work_dir, '404NotFoundURL.txt')
-    main(sql_db, structure_dir_path, log_file)
-
-
