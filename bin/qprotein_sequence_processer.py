@@ -1,6 +1,6 @@
 """
 # ------------------------------------------------------------------------------
-# Author:    Zhixin Dou
+# Author:    Dou Zhixin
 # Email:     bj600800@gmail.com
 # DATE:      2023/03/06
 
@@ -9,13 +9,18 @@
 """
 import os.path
 import sys
-
+import argparse
 sys.path.append("..")
 
 from qprotein.database import annotation_wrapper
 from qprotein.utilities import logger
 
 logger = logger.setup_log(name=__name__)
+
+parser = argparse.ArgumentParser(description='Crawl query structure with multiprocessing.')
+parser.add_argument('--work_dir', required=True, help='All task dirs should be here')
+parser.add_argument('--task_name', required=True, help='Name the task')
+args = parser.parse_args()
 
 
 def create_sql(summary_sql_path):
@@ -81,20 +86,20 @@ def insert_query_length(task_name, summary_sql_path, fasta_sql_path):
         logger.error("Got an exception!", e)
 
 
-def run():
-    task_name = "tibet"
-    root_dir = r"D:\subject\active\1-qProtein\data"
-    work_dir = os.path.join(root_dir, task_name)
-    if not os.path.exists(work_dir):
-        logger.info('Create dir', work_dir)
-        os.mkdir(work_dir)
-    summary_sql_path = os.path.join(work_dir, 'qprotein_results.db')
-    uniprot_db = os.path.join(root_dir, 'qprotein_db.db')
+def process_sequence():
+    work_dir = args.work_dir
+    task_name = args.task_name
 
-    sprot_dmnd_output = os.path.join(work_dir, 'sprot_70_200_90.out')
-    trembl_dmnd_output = os.path.join(work_dir, 'trembl_70_200_90.out')
-    cazy_output = os.path.join(work_dir, 'cazy_overview.txt')
-    merops_output = os.path.join(work_dir, 'merops.out')
+    task_dir = os.path.join(work_dir, task_name)
+    if not os.path.exists(task_dir):
+        logger.info('Create dir', task_dir)
+        os.mkdir(task_dir)
+    summary_sql_path = os.path.join(task_dir, 'qprotein_results.db')
+    uniprot_db = os.path.join(work_dir, 'qprotein_db.db')
+    sprot_dmnd_output = os.path.join(task_dir, 'sprot_70_200_90.out')
+    trembl_dmnd_output = os.path.join(task_dir, 'trembl_70_200_90.out')
+    cazy_output = os.path.join(task_dir, 'cazy_overview.txt')
+    merops_output = os.path.join(task_dir, 'merops.out')
 
     create_sql(summary_sql_path=summary_sql_path)
     insert_sprot(dmnd_output=sprot_dmnd_output, summary_sql_path=summary_sql_path)
@@ -107,4 +112,4 @@ def run():
 
 
 if __name__ == '__main__':
-    run()
+    process_sequence()

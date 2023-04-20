@@ -1,14 +1,15 @@
 """
 # ------------------------------------------------------------------------------
-# Author:    Zhixin Dou
+# Author:    Dou Zhixin
 # Email:     bj600800@gmail.com
 # DATE:      2023/04/16
 
-# Description: 
+# Description: data statistics
 # ------------------------------------------------------------------------------
 """
 import os
 from tqdm import tqdm
+
 
 class Analyze:
     def __init__(self, high_dir, good_dir, summary_sql, topt_results, task_name, plddt_output, topt_output, statistic_output):

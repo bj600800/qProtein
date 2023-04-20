@@ -1,10 +1,12 @@
-#!/usr/bin/env python           
-# -*- coding:utf-8 -*-          
-# @Filename:    split_fasta.py      
-# @Author:      Eric Dou        
-# @Time:        2022/10/19 11:50 
+"""
+# ------------------------------------------------------------------------------
+# Author:    Dou Zhixin
+# Email:     bj600800@gmail.com
+# DATE:      2023/04/15
 
-"""Split fasta from one file into a directory"""
+# Description: Split fasta from one file into a directory
+# ------------------------------------------------------------------------------
+"""
 import os
 import argparse
 

@@ -1,8 +1,18 @@
+"""
+# ------------------------------------------------------------------------------
+# Author:    Dou Zhixin
+# Email:     bj600800@gmail.com
+# DATE:      2023/04/14
+
+# Description: Mapping Structure for the target sequence
+# ------------------------------------------------------------------------------
+"""
 import json
 import os
 import threading
 import time
 import random
+from tqdm import tqdm
 from queue import Queue
 import requests
 from requests.adapters import Retry
@@ -33,13 +43,13 @@ class TargetNameRetriever(SqlSearch):
                   "FROM results_summary WHERE sprot_acc != '' or trembl_acc != ''"
 
         results_list = self.fetch_results(cursor=cursor, sql_cmd=sql_cmd)
+        logger.info(f"Get the total number of targets from SQL: {len(results_list)}")
         return results_list
 
     def get_exist_query(self):
         if os.path.exists(self.structure_dir_path):
             exist_structure = os.listdir(self.structure_dir_path)
-            exist_query_name = [i.split('#')[0] for i in exist_structure]
-            logger.info(f'Found {len(exist_query_name)} structure(s) in {self.structure_dir_path}.')
+            exist_query_name = [i.split('#')[1] for i in exist_structure]
             return exist_query_name
         else:
             return []
@@ -54,12 +64,14 @@ class TargetNameRetriever(SqlSearch):
 
     def filter_results(self):
         exist_query_name = self.get_exist_query()
+        logger.info(f'Found {len(exist_query_name)} structure(s) in {os.path.abspath(self.structure_dir_path)}')
         invalid_query_name = self.get_NO_structure_query()
-        results_list = [result for result in self.get_sql_results()
+        logger.info(f'Found {len(invalid_query_name)} non-structural targets in {os.path.abspath(self.log_file)}')
+
+        results_list = [result for result in tqdm(self.get_sql_results(), desc='Filter query targets', unit='step')
                         if result[0] not in exist_query_name
                         if result[2] not in invalid_query_name
                         and result[10] not in invalid_query_name]
-
         query_info = []
         for result in results_list:
             if all(bool(i) for i in (result[2], result[10])):
@@ -241,7 +253,8 @@ def map_multiprocess(summary_results_db, structure_dir_path, log_file):
                                          log_file=log_file)
     query_info = target_handler.filter_results()
     logger.info(f'Found {len(query_info)} targets to map structure.')
-    for info in query_info[300000:]:
+
+    for info in query_info:
         query_info_queue.put(info)
     producer_thread, consumer_thread = get_producer_comsumer_num()
     logger.info(f'We have {producer_thread} thread(s) for producer and {consumer_thread} thread(s) for consumer.')
@@ -265,4 +278,4 @@ def map_multiprocess(summary_results_db, structure_dir_path, log_file):
     for t in producer_thread_list:
         t.join()
 
-    logger.info('All threads for StructureMapper finished')
+    logger.info('All threads for structure processing finished!')

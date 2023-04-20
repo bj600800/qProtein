@@ -1,6 +1,6 @@
 """
 # ------------------------------------------------------------------------------
-# Author:    Zhixin Dou
+# Author:    Dou Zhixin
 # Email:     bj600800@gmail.com
 # DATE:      2023/03/13
 
@@ -78,10 +78,10 @@ class FastaSql(SqlBuilder):
 
 if __name__ == '__main__':
     task_name = 'tibet'
-    root_dir = r'D:\subject\active\1-qProtein\data'
-    work_dir = os.path.join(root_dir, task_name)
-    fasta_file = os.path.join(work_dir, 'tibet.fasta')
-    sql_db = os.path.join(root_dir, 'qprotein_db.db')
+    work_dir = r'D:\subject\active\1-qProtein\data'
+    task_dir = os.path.join(work_dir, task_name)
+    fasta_file = os.path.join(task_dir, 'tibet.fasta')
+    sql_db = os.path.join(work_dir, 'qprotein_db.db')
     table_name = os.path.split(fasta_file)[1].split('.')[0]
     column_definition = [("query_name", "TEXT"), ("sequence", "TEXT")]
     fasta_db = FastaSql(fasta_file, sql_db, table_name, column_definition)

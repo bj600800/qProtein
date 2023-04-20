@@ -1,10 +1,10 @@
 """
 # ------------------------------------------------------------------------------
-# Author:    Zhixin Dou
+# Author:    Dou Zhixin
 # Email:     bj600800@gmail.com
 # DATE:      2023/04/15
 
-# Description: 
+# Description: move protein structures for paper.
 # ------------------------------------------------------------------------------
 """
 import os

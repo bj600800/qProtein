@@ -1,14 +1,14 @@
 """
 # ------------------------------------------------------------------------------
-# Author:    Zhixin Dou
+# Author:    Dou Zhixin
 # Email:     bj600800@gmail.com
 # DATE:      2023/03/14
 
-# Description: 
+# Description: Get protein sequences for the query targets with structure
 # ------------------------------------------------------------------------------
 """
 import os
-
+from tqdm import tqdm
 from qprotein.database.sqlite3_searcher import SqlSearch
 
 

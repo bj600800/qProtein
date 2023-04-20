@@ -1,6 +1,6 @@
 """
 # ------------------------------------------------------------------------------
-# Author:    Zhixin Dou
+# Author:    Dou Zhixin
 # Email:     bj600800@gmail.com
 # DATE:      2023/04/14
 
@@ -170,9 +170,9 @@ def write_results(struct_dir, results_output, dssp):
 
 if __name__ == '__main__':
     task_name = 'manure'
-    root_dir = r"D:\subject\active\1-qProtein\data"
+    work_dir = r"D:\subject\active\1-qProtein\data"
     dssp = r'D:\subject\active\1-qProtein\tools\dssp\dssp-3.0.0-win32.exe'
-    task_dir = os.path.join(root_dir, task_name)
+    task_dir = os.path.join(work_dir, task_name)
     struct_dir = os.path.join(task_dir, 'high_plddt')
     results_output = os.path.join(task_dir, 'structure_results.csv')
 

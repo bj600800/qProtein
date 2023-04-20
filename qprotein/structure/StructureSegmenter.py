@@ -1,14 +1,10 @@
 """
 # ------------------------------------------------------------------------------
-# Author:    Zhixin Dou
+# Author:    Dou Zhixin
 # Email:     bj600800@gmail.com
 # DATE:      2023/03/14
 
 # Description: query structure segmentation
-  Input: 1. full length subject structure collected from alphafold datbase, 2. subject start and end site,
-         3. query start and end site, 4. query matched length, and 5. query length
-
-  Output: segmented structure and file name.
 # ------------------------------------------------------------------------------
 """
 
@@ -163,7 +159,7 @@ class Segmenter:
             writer.write(output_cif)
             return write_cif_path
         else:
-            return f"Low average pLDDT -> {mean_plddt}"
+            return f"Skipped for low average pLDDT -> {mean_plddt}"
 
     def run(self):
         write_cif_path = self.write_cif()
