@@ -4,11 +4,12 @@
 # Email:     bj600800@gmail.com
 # DATE:      2023/03/06
 
-# Description: parse uniprot dat file to sqlite3
+# Description: parse uniprot dat file with sqlite3
 # ------------------------------------------------------------------------------
 """
 
-
+import os
+from tqdm import tqdm
 from qprotein.database.sqlite3_builder import SqlBuilder
 from qprotein.utilities import logger
 
@@ -16,8 +17,13 @@ logger = logger.setup_log(name=__name__)
 
 
 class UniprotSql(SqlBuilder):
-    def __init__(self, dat_file, sql_db, table_name, column_definition):
-        super(UniprotSql, self).__init__(sql_db, table_name, column_definition)
+    def __init__(self, dat_file, sql_path, table_name):
+        super(UniprotSql, self).__init__(sql_db=sql_path, table_name=table_name,
+                                         column_definition=[("accession", "TEXT"), ("gene_name", "TEXT"),
+                                                            ("ec_number", "TEXT"), ("go_component", "TEXT"),
+                                                            ("go_process", "TEXT"), ("go_function", "TEXT"),
+                                                            ("interpro", "TEXT"), ("pfam", "TEXT")]
+                                         )
 
         self.dat_file = dat_file
 
@@ -101,11 +107,13 @@ class UniprotSql(SqlBuilder):
             self.record_counter += 1
             self.total_records += 1
 
-    def parse_dat(self, cursor):
+    def parse_dat(self, cursor, columns):
         for line in self.read_gz_generator(self.dat_file):
             if self.record_counter == 500000:
-                self.insert_many(cursor, self.records, 8)
-                logger.info(f"Insert 500000 records into {self.table_name}, total records:" + str(self.total_records))
+                self.insert_update_columns(cursor=cursor, table_name=self.table_name, columns=columns,
+                                           records=self.records
+                                           )
+                logger.info(f"Insert 500000 records. Total records: {str(self.total_records)}")
 
                 self.records = []
                 self.record_counter = 0
@@ -115,35 +123,19 @@ class UniprotSql(SqlBuilder):
 
         # Insert the remaining records
         if self.record_counter > 0:
-            logger.info(f"Insert {self.record_counter} records into {self.table_name}")
-            self.insert_many(cursor, self.records, 8)
-
+            self.insert_update_columns(cursor=cursor, table_name=self.table_name, columns=columns,
+                                       records=self.records
+                                       )
+            logger.info(f"Insert {self.record_counter} records")
         logger.info(f"Total records:" + str(self.total_records))
 
     def run(self):
+        logger.info(f"Parse {self.table_name} and insert records")
         columns = [i[0] for i in self.column_definition]
-        logger.info(f"Start to create SQL table: {self.table_name} in SQL file {self.sql_path}")
-        logger.info(f"Create SQL table: {self.table_name}")
-        cursor = self.create_table(self.table_name, self.sql_path, self.column_definition)
 
-        logger.info(f"Parse uniprot dat file and insert records into {self.table_name}")
-        self.parse_dat(cursor)
-
-        logger.info(f'Create index for SQL table: {self.table_name}')
+        sql = f"CREATE TABLE {self.table_name} (accession TEXT PRIMARY KEY)"
+        cursor = self.create_table(self.table_name, self.sql_path, sql)
+        self.add_column(cursor=cursor, table_name=self.table_name, column_definition=self.column_definition)
+        self.parse_dat(cursor=cursor, columns=columns)
         self.create_index(cursor=cursor, columns=columns)
-
-        logger.info(f'Successfully built SQL database for {self.table_name}')
-
-
-if __name__ == '__main__':
-    sprot_dat = r'G:\DB\uniprot_sprot.dat.gz'
-    sql_db = r'C:\Users\bj600\Desktop\qprotein_db.db'
-    table_name = 'sprot_dat'
-    column_definition = {"accession": "TEXT", "gene_name": "TEXT",
-                         "ec_number": "TEXT", "go_component": "TEXT",
-                         "go_process": "TEXT", "go_function": "TEXT",
-                         "interpro": "TEXT", "pfam": "TEXT"
-                         }
-
-    uniprot_builder = UniprotSql(sprot_dat, sql_db, table_name, column_definition)
-    uniprot_builder.run()
+        logger.info(f'Successfully built SQL database for task: {self.table_name}')

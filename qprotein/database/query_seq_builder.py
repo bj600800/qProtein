@@ -17,8 +17,9 @@ logger = logger.setup_log(name=__name__)
 
 
 class FastaSql(SqlBuilder):
-    def __init__(self, fasta_file, sql_db, table_name, column_definition):
-        super(FastaSql, self).__init__(sql_db, table_name, column_definition)
+    def __init__(self, sql_path, fasta_file, table_name):
+        super(FastaSql, self).__init__(sql_db=sql_path, table_name=table_name,
+                                       column_definition=[("query_name", "TEXT"), ("sequence", "TEXT")])
         self.fasta_file = fasta_file
 
         self.record_items = {column_name[0]: '' for column_name in self.column_definition}
@@ -42,7 +43,7 @@ class FastaSql(SqlBuilder):
                 self.insert_many_columns(cursor=cursor, values_num=2,
                                          columns=columns, records=self.records
                                          )
-                logger.info(f"Insert 500000 records. Total records:" + str(self.total_records))
+                logger.info(f"Insert 500000 records. Total records: {str(self.total_records)}")
                 self.records = []
                 self.record_counter = 0
                 self.format_records(seq_record)
@@ -54,35 +55,16 @@ class FastaSql(SqlBuilder):
             self.insert_many_columns(cursor=cursor, values_num=2,
                                      columns=columns, records=self.records
                                      )
-            logger.info(f"Update {self.record_counter} records")
-
+            logger.info(f"Insert {self.record_counter} records")
         logger.info(f"Total records:" + str(self.total_records))
 
     def run(self):
+        logger.info(f"Parse {self.table_name} sequences and insert records")
         columns = [i[0] for i in self.column_definition]
 
-        logger.info(f"Start to create SQL table: {self.table_name} in SQL file {self.sql_path}")
-
-        logger.info(f"Create SQL table: {self.table_name}")
         sql = f"CREATE TABLE {self.table_name} (query_name TEXT PRIMARY KEY, sequence TEXT)"
         cursor = self.create_table(self.table_name, self.sql_path, sql)
-
-        logger.info(f"Parse file and insert records into {self.table_name}")
         self.parse_fasta(cursor, columns)
-
-        logger.info(f'Creating index for SQL table: {self.table_name}')
         self.create_index(cursor, columns)
+        logger.info(f'Successfully built SQL database for task: {self.table_name}')
 
-        logger.info(f'Successfully built SQL database for {self.table_name}')
-
-
-if __name__ == '__main__':
-    task_name = 'tibet'
-    work_dir = r'D:\subject\active\1-qProtein\data'
-    task_dir = os.path.join(work_dir, task_name)
-    fasta_file = os.path.join(task_dir, 'tibet.fasta')
-    sql_db = os.path.join(work_dir, 'qprotein_db.db')
-    table_name = os.path.split(fasta_file)[1].split('.')[0]
-    column_definition = [("query_name", "TEXT"), ("sequence", "TEXT")]
-    fasta_db = FastaSql(fasta_file, sql_db, table_name, column_definition)
-    fasta_db.run()

@@ -66,10 +66,10 @@ class SprotDmnd(SqlBuilder, SqlSearch):
         for line in self.read_text_generator(filename=self.dmnd_output, header=False):
             line = line.split('\t')
             if self.record_counter == 500000:
-                logger.info(f"Insert 500000 records. Total records:" + str(self.total_records))
                 self.insert_update_columns(cursor=cursor, table_name="results_summary", columns=columns,
                                            records=self.records
                                            )
+                logger.info(f"Insert 500000 records. Total records: {str(self.total_records)}")
                 self.records = []
                 self.record_counter = 0
             else:
@@ -153,7 +153,7 @@ class SprotAnnotation(SqlBuilder, SqlSearch):
                 self.update_many_columns(cursor=cursor, table_name="results_summary",
                                          columns=columns, records=self.records
                                          )
-                logger.info(f"Insert 500000 records. Total records:" + str(self.total_records))
+                logger.info(f"Insert 500000 records. Total records: {str(self.total_records)}")
 
                 self.records = []
                 self.record_counter = 0
@@ -275,7 +275,7 @@ class CazyAnalysis(SqlBuilder):
             line = line.split('\t')
             if self.record_counter == 500000:
                 self.insert_update_columns(cursor=cursor, table_name="results_summary", columns=columns, records=self.records)
-                logger.info(f"Insert 500000 records. Total records:" + str(self.total_records))
+                logger.info(f"Insert 500000 records. Total records: {str(self.total_records)}")
 
                 self.records = []
                 self.record_counter = 0
@@ -328,7 +328,7 @@ class MeropsAnalysis(SqlBuilder, SqlSearch):
             if self.record_counter == 500000:
                 self.insert_update_columns(cursor=cursor, table_name="results_summary",
                                            columns=columns, records=self.records)
-                logger.info(f"Insert 500000 records. Total records:" + str(self.total_records))
+                logger.info(f"Insert 500000 records. Total records: {str(self.total_records)}")
 
                 self.records = []
                 self.record_counter = 0
@@ -396,7 +396,7 @@ class QueryAnalysis(SqlBuilder, SqlSearch):
             if self.record_counter == 500000:
                 self.update_many_columns(cursor=cursor, table_name="results_summary",
                                          columns=columns, records=self.records)
-                logger.info(f"Insert 500000 records. Total records:" + str(self.total_records))
+                logger.info(f"Insert 500000 records. Total records: {str(self.total_records)}")
 
                 self.records = []
                 self.record_counter = 0

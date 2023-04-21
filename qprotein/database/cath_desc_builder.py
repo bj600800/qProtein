@@ -50,7 +50,7 @@ class CathSql(SqlBuilder):
     def parse_desc(self, cursor):
         for line in self.read_text_generator(self.file, header=False):
             if self.record_counter == 500000:
-                logger.info(f"Insert 500000 records into {self.table_name}, total records:" + str(self.total_records))
+                logger.info(f"\nInsert 500000 records. Total records: {str(self.total_records)}")
                 self.insert_many(cursor, self.records, 6)
                 self.records = []
                 self.record_counter = 0

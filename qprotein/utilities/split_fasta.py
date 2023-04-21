@@ -51,5 +51,4 @@ def main():
     split_fasta(fasta, dir_path)
 
 
-if __name__ == '__main__':
-    main()
+main()

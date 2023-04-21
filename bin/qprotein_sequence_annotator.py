@@ -34,6 +34,7 @@ def insert_sprot(dmnd_output, summary_sql_path):
         dmnd.run()
     except IOError:
         logger.debug("No sprot_dmnd_output file!")
+        raise
 
 
 def annotate_sprot(uniprot_db, summary_sql_path):
@@ -41,7 +42,8 @@ def annotate_sprot(uniprot_db, summary_sql_path):
         sprot_dat = annotation_wrapper.SprotAnnotation(uniprot_db=uniprot_db, summary_sql_path=summary_sql_path)
         sprot_dat.run()
     except Exception as e:
-        logger.debug(e)
+        logger.debug("Got an exception!", e)
+        raise
 
 
 def insert_trembl(dmnd_output, summary_sql_path):
@@ -50,6 +52,7 @@ def insert_trembl(dmnd_output, summary_sql_path):
         trembl.run()
     except IOError:
         logger.debug("No trembl_dmnd_output file!")
+        raise
 
 
 def annotate_trembl(summary_sql_path, uniprot_db):
@@ -58,6 +61,7 @@ def annotate_trembl(summary_sql_path, uniprot_db):
         trembl_dat.run()
     except Exception as e:
         logger.error("Got an exception!", e)
+        raise
 
 
 def insert_cazy(cazy_output, sql_path):
@@ -66,6 +70,7 @@ def insert_cazy(cazy_output, sql_path):
         cazy.run()
     except IOError:
         logger.debug("NO cazy_output file!")
+        raise
 
 
 def insert_merops(merops_output, summary_sql_path):
@@ -74,19 +79,20 @@ def insert_merops(merops_output, summary_sql_path):
         merops.run()
     except IOError:
         logger.debug("No merops_output file!")
+        raise
 
 
 def insert_query_length(task_name, summary_sql_path, fasta_sql_path):
     try:
         query_length = annotation_wrapper.QueryAnalysis(task_name=task_name, summary_sql_path=summary_sql_path,
-                                                        fasta_sql_path=fasta_sql_path
-                                                        )
+                                                        fasta_sql_path=fasta_sql_path)
         query_length.run()
     except Exception as e:
         logger.error("Got an exception!", e)
+        raise
 
 
-def process_sequence():
+def run():
     work_dir = args.work_dir
     task_name = args.task_name
 
@@ -111,5 +117,4 @@ def process_sequence():
     insert_query_length(task_name=task_name, summary_sql_path=summary_sql_path, fasta_sql_path=uniprot_db)
 
 
-if __name__ == '__main__':
-    process_sequence()
+run()

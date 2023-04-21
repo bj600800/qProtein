@@ -12,6 +12,7 @@ sys.path.insert(0, '../')
 from abc import abstractmethod
 import sqlite3
 import gzip
+from tqdm import tqdm
 from qprotein.utilities import logger
 
 logger = logger.setup_log(name=__name__)
@@ -39,7 +40,7 @@ class SqlBuilder(object):
     @staticmethod
     def read_gz_generator(file):
         with gzip.open(file, 'rt') as uniprot_dat:
-            for line in uniprot_dat:
+            for line in tqdm(uniprot_dat, desc='Read dat file', unit='step'):
                 yield line
 
     @staticmethod

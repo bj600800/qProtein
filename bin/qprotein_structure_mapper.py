@@ -31,6 +31,10 @@ def crawl_structure(work_dir, task_name):
     map_multiprocess(sql_db, structure_dir_path, log_file)
 
 
+def quantify_structure():
+    pass
+
+
 def run():
     work_dir = args.work_dir
     task_name = args.task_name
