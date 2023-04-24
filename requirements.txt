@@ -5,3 +5,4 @@ pdbecif
 freesasa
 tqdm
 biopython
+diamond

@@ -17,28 +17,21 @@ from qprotein.structure.StructureMapper import map_multiprocess
 
 parser = argparse.ArgumentParser(description='Crawl query structure with multiprocessing.')
 
-parser.add_argument('--work_dir', required=True, help='All task dirs should be here')
-parser.add_argument('--task_name', required=True, help='Name the task')
+parser.add_argument('--task_dir', required=True, help='Specific the task directory')
 
 args = parser.parse_args()
 
 
-def crawl_structure(work_dir, task_name):
-    task_dir = os.path.join(work_dir, task_name)
+def crawl_structure(task_dir):
     structure_dir_path = os.path.join(task_dir, 'structure')
     sql_db = os.path.join(task_dir, 'qprotein_results.db')
     log_file = os.path.join(task_dir, '404NotFoundURL.txt')
     map_multiprocess(sql_db, structure_dir_path, log_file)
 
 
-def quantify_structure():
-    pass
-
-
 def run():
-    work_dir = args.work_dir
-    task_name = args.task_name
-    crawl_structure(work_dir, task_name)
+    task_dir = args.task_dir
+    crawl_structure(task_dir)
 
 
 run()

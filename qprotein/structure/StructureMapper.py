@@ -253,29 +253,32 @@ def map_multiprocess(summary_results_db, structure_dir_path, log_file):
                                          log_file=log_file)
     query_info = target_handler.filter_results()
     logger.info(f'Found {len(query_info)} targets to map structure.')
+    if query_info:
+        for info in query_info:
+            query_info_queue.put(info)
+            print('get')
+        producer_thread, consumer_thread = get_producer_comsumer_num()
+        logger.info(f'We have {producer_thread} thread(s) for producer and {consumer_thread} thread(s) for consumer.')
 
-    for info in query_info:
-        query_info_queue.put(info)
-    producer_thread, consumer_thread = get_producer_comsumer_num()
-    logger.info(f'We have {producer_thread} thread(s) for producer and {consumer_thread} thread(s) for consumer.')
+        producer_thread_list = []
+        for i in range(producer_thread):
+            t = Producer(query_info_queue=query_info_queue, structure_info_queue=structure_info_queue, log_file=log_file)
+            producer_thread_list.append(t)
+            t.start()
 
-    producer_thread_list = []
-    for i in range(producer_thread):
-        t = Producer(query_info_queue=query_info_queue, structure_info_queue=structure_info_queue, log_file=log_file)
-        producer_thread_list.append(t)
-        t.start()
+        consumer_thread_list = []
+        for i in range(consumer_thread):
+            t = Consumer(query_info_queue=query_info_queue, structure_info_queue=structure_info_queue, structure_dir_path=structure_dir_path)
+            consumer_thread_list.append(t)
+            t.daemon = True
+            t.start()
 
-    consumer_thread_list = []
-    for i in range(consumer_thread):
-        t = Consumer(query_info_queue=query_info_queue, structure_info_queue=structure_info_queue, structure_dir_path=structure_dir_path)
-        consumer_thread_list.append(t)
-        t.daemon = True
-        t.start()
+        for t in consumer_thread_list:
+            t.join()
 
-    for t in consumer_thread_list:
-        t.join()
+        for t in producer_thread_list:
+            t.join()
 
-    for t in producer_thread_list:
-        t.join()
-
-    logger.info('All threads for structure processing finished!')
+        logger.info('All threads for structure processing finished!')
+    else:
+        logger.info("No query sequence needs to map structure")

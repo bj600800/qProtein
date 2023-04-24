@@ -19,7 +19,7 @@ logger = logger.setup_log(name=__name__)
 
 parser = argparse.ArgumentParser(description='Crawl query structure with multiprocessing.')
 parser.add_argument('--work_dir', required=True, help='All task dirs should be here')
-parser.add_argument('--task_name', required=True, help='Name the task')
+parser.add_argument('--task_dir', required=True, help='Specific the task directory')
 args = parser.parse_args()
 
 
@@ -64,22 +64,22 @@ def annotate_trembl(summary_sql_path, uniprot_db):
         raise
 
 
-def insert_cazy(cazy_output, sql_path):
-    try:
-        cazy = annotation_wrapper.CazyAnalysis(cazy_output=cazy_output, sql_path=sql_path)
-        cazy.run()
-    except IOError:
-        logger.debug("NO cazy_output file!")
-        raise
+# def insert_cazy(cazy_output, sql_path):
+#     try:
+#         cazy = annotation_wrapper.CazyAnalysis(cazy_output=cazy_output, sql_path=sql_path)
+#         cazy.run()
+#     except IOError:
+#         logger.debug("NO cazy_output file!")
+#         raise
 
 
-def insert_merops(merops_output, summary_sql_path):
-    try:
-        merops = annotation_wrapper.MeropsAnalysis(merops_output=merops_output, summary_sql_path=summary_sql_path)
-        merops.run()
-    except IOError:
-        logger.debug("No merops_output file!")
-        raise
+# def insert_merops(merops_output, summary_sql_path):
+#     try:
+#         merops = annotation_wrapper.MeropsAnalysis(merops_output=merops_output, summary_sql_path=summary_sql_path)
+#         merops.run()
+#     except IOError:
+#         logger.debug("No merops_output file!")
+#         raise
 
 
 def insert_query_length(task_name, summary_sql_path, fasta_sql_path):
@@ -94,27 +94,25 @@ def insert_query_length(task_name, summary_sql_path, fasta_sql_path):
 
 def run():
     work_dir = args.work_dir
-    task_name = args.task_name
-
-    task_dir = os.path.join(work_dir, task_name)
+    task_dir = args.task_dir
     if not os.path.exists(task_dir):
         logger.info('Create dir', task_dir)
         os.mkdir(task_dir)
     summary_sql_path = os.path.join(task_dir, 'qprotein_results.db')
     uniprot_db = os.path.join(work_dir, 'qprotein_db.db')
-    sprot_dmnd_output = os.path.join(task_dir, 'sprot_70_200_90.out')
-    trembl_dmnd_output = os.path.join(task_dir, 'trembl_70_200_90.out')
-    cazy_output = os.path.join(task_dir, 'cazy_overview.txt')
-    merops_output = os.path.join(task_dir, 'merops.out')
+    sprot_dmnd_output = os.path.join(task_dir, "annotation_results", "uniprot_sprot_70_200_90.out")
+    trembl_dmnd_output = os.path.join(task_dir, "annotation_results", 'uniprot_trembl_70_200_90.out')
+    # cazy_output = os.path.join(task_dir, 'cazy_overview.txt')
+    # merops_output = os.path.join(task_dir, 'merops.out')
 
     create_sql(summary_sql_path=summary_sql_path)
     insert_sprot(dmnd_output=sprot_dmnd_output, summary_sql_path=summary_sql_path)
     annotate_sprot(uniprot_db=uniprot_db, summary_sql_path=summary_sql_path)
     insert_trembl(dmnd_output=trembl_dmnd_output, summary_sql_path=summary_sql_path)
     annotate_trembl(summary_sql_path=summary_sql_path, uniprot_db=uniprot_db)
-    insert_cazy(cazy_output=cazy_output, sql_path=summary_sql_path)
-    insert_merops(merops_output=merops_output, summary_sql_path=summary_sql_path)
-    insert_query_length(task_name=task_name, summary_sql_path=summary_sql_path, fasta_sql_path=uniprot_db)
+    # insert_cazy(cazy_output=cazy_output, sql_path=summary_sql_path)
+    # insert_merops(merops_output=merops_output, summary_sql_path=summary_sql_path)
+    insert_query_length(task_name=os.path.split(task_dir)[-1], summary_sql_path=summary_sql_path, fasta_sql_path=uniprot_db)
 
 
 run()

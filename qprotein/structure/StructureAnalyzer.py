@@ -18,21 +18,21 @@ from Bio.PDB.DSSP import DSSP
 import freesasa
 
 
-def get_dssp_cif(struct_path, dssp_path):
+def get_dssp_cif(struct_path):
     parser = MMCIFParser()
     struct_file_name = os.path.split(struct_path)[1].split('.')[0]
     model = parser.get_structure(struct_file_name, struct_path)[0]
-    dssp = DSSP(model, struct_path, dssp_path)
+    dssp = DSSP(model, struct_path, dssp="mkdssp")
     dssp_dat = [residue_dat for residue_dat in dssp]
     return dssp_dat
 
 
-def get_dssp_pdb(struct_path, dssp_path):
+def get_dssp_pdb(struct_path):
     p = PDBParser()
     struct_file_name = os.path.split(struct_path)[1].split('.')[0]
     structure = p.get_structure(struct_file_name, struct_path)
     model = structure[0]
-    dssp = DSSP(model, struct_path, dssp_path)
+    dssp = DSSP(model, struct_path, dssp="mkdssp")
     dssp_dat = [residue_dat for residue_dat in dssp]
     return dssp_dat
 
@@ -133,17 +133,17 @@ def get_electrostatics():
     pass
 
 
-def process_structure(struct_path, dssp):
+def process_structure(struct_path):
     """
     Iterate every structure for process.
     """
 
     if struct_path.split('.')[-1] == 'cif':
-        dssp_dat = get_dssp_cif(struct_path, dssp)
+        dssp_dat = get_dssp_cif(struct_path)
         pdb_file = cif2pdb(struct_path)
         sasa = get_sasa(pdb_file)
     else:
-        dssp_dat = get_dssp_pdb(struct_path, dssp)
+        dssp_dat = get_dssp_pdb(struct_path)
         sasa = get_sasa(struct_path)
     ss_content = get_ss_content(get_second_struct(dssp_dat))
     hbond = get_Hbond(dssp_dat)
@@ -151,7 +151,7 @@ def process_structure(struct_path, dssp):
     return {'ss_content': ss_content, 'hbond': hbond, 'surface': surface, 'sasa': sasa}
 
 
-def write_results(struct_dir, results_output, dssp):
+def Analyze(struct_dir, results_output):
     struct_path_list = [os.path.join(struct_dir, i) for i in os.listdir(struct_dir) if os.path.splitext(i)[1] == '.cif']
     with open(results_output, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
@@ -162,29 +162,7 @@ def write_results(struct_dir, results_output, dssp):
             try:
                 if os.stat(struct_path).st_size != 0:
                     struct_name = os.path.split(struct_path)[1].split('.')[0]
-                    results = process_structure(struct_path, dssp)
+                    results = process_structure(struct_path)
                     writer.writerow([struct_name]+[str(value) for subdict in results.values() for value in subdict.values()])
             except ValueError:
                 continue
-
-
-if __name__ == '__main__':
-    task_name = 'manure'
-    work_dir = r"D:\subject\active\1-qProtein\data"
-    dssp = r'D:\subject\active\1-qProtein\tools\dssp\dssp-3.0.0-win32.exe'
-    task_dir = os.path.join(work_dir, task_name)
-    struct_dir = os.path.join(task_dir, 'high_plddt')
-    results_output = os.path.join(task_dir, 'structure_results.csv')
-
-    write_results(struct_dir, results_output, dssp)
-
-
-
-
-
-
-
-
-
-
-

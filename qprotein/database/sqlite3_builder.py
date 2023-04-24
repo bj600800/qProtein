@@ -32,10 +32,13 @@ class SqlBuilder(object):
     @staticmethod
     def read_text_generator(filename, header):
         with open(filename, 'r') as f:
-            if header is True or 'T':
-                next(f)
-            for line in f:
-                yield line
+            try:
+                if header is True or 'T':
+                    next(f)
+                for line in f:
+                    yield line
+            except:
+                return
 
     @staticmethod
     def read_gz_generator(file):
