@@ -10,4 +10,6 @@ An automated platform for the analysis and quantification of protein structure-o
 
 `cd qProtein`
 
+`chmod 775 -R ./`
+
 `conda env create -f environment.yml`
