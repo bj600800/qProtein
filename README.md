@@ -8,6 +8,6 @@ An automated platform for the analysis and quantification of protein structure-o
 ## Building from source
 `git clone https://github.com/bj600800/qProtein.git`
 
-`cd qprotein`
+`cd qProtein`
 
 `conda env create -f environment.yml`
