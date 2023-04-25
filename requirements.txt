@@ -1,8 +1,0 @@
-numpy
-requests
-pandas
-pdbecif
-freesasa
-tqdm
-biopython
-diamond

@@ -10,13 +10,14 @@
 import json
 import os
 import threading
+import multiprocessing
+from queue import Queue
 import time
 import random
 from tqdm import tqdm
-from queue import Queue
 import requests
 from requests.adapters import Retry
-import multiprocessing
+
 from qprotein.database.sqlite3_searcher import SqlSearch
 from qprotein.structure.StructureSegmenter import Segmenter
 from qprotein.utilities import logger
@@ -220,14 +221,15 @@ class Consumer(threading.Thread):
 
     def run(self):
         while True:
+            if self.structure_info_queue.empty() and self.query_info_queue.empty():
+                logger.info('Structure mapping mission complete!')
+                break
             query_info, structure_info = self.structure_info_queue.get()
             url = structure_info["url"]
             cif_str = self.request_structure(url=url)
             write_cif_path = self.map_structure(cif_str=cif_str, query_info=query_info)
             logger.info(f'Write {query_info[0]} structure: {write_cif_path}')
-            if self.structure_info_queue.empty() and self.query_info_queue.empty():
-                logger.info('Structure mapping mission complete!')
-                break
+
 
 
 def get_cpu_core():
@@ -256,7 +258,6 @@ def map_multiprocess(summary_results_db, structure_dir_path, log_file):
     if query_info:
         for info in query_info:
             query_info_queue.put(info)
-            print('get')
         producer_thread, consumer_thread = get_producer_comsumer_num()
         logger.info(f'We have {producer_thread} thread(s) for producer and {consumer_thread} thread(s) for consumer.')
 

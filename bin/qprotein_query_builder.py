@@ -11,6 +11,7 @@ import os.path
 import sys
 import argparse
 from qprotein.database.query_seq_builder import FastaSql
+
 from qprotein.utilities import logger
 
 sys.path.append("..")

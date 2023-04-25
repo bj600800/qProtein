@@ -12,7 +12,7 @@ import sys
 import argparse
 sys.path.append("..")
 
-from qprotein.structure.StructureAnalyzer import Analyze
+from qprotein.structure.StructureAnalyzer import multiprocess
 from qprotein.utilities import logger
 
 logger = logger.setup_log(name=__name__)
@@ -25,8 +25,8 @@ args = parser.parse_args()
 def run():
     task_dir = args.task_dir
     struct_dir = os.path.join(task_dir, 'structure')
-    results_output = os.path.join(task_dir, 'structure_results.csv')
-    Analyze(struct_dir, results_output)
+    output_file = os.path.join(task_dir, 'structure_results.csv')
+    multiprocess(struct_dir, output_file)
 
 
 run()
