@@ -8,10 +8,10 @@ An automated platform for the analysis and quantification of protein structure-o
 ## Installing Building from source
 `git clone https://github.com/bj600800/qProtein.git`
 
-`cd qProtein`
+1 cd qProtein
 
-`chmod 775 -R ./`
+2 chmod 775 -R ./
 
-`conda env create -f environment.yml`
+3 conda env create -f environment.yml
 
-./run_qprotein.sh
+4 ./run_qprotein.sh
