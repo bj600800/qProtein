@@ -5,7 +5,7 @@ An automated platform for the analysis and quantification of protein structure-o
 - gcc (if missing)
   - for Ubuntu: `sudo apt install gcc`
 
-## Building from source
+## Installing Building from source
 `git clone https://github.com/bj600800/qProtein.git`
 
 `cd qProtein`
@@ -13,3 +13,5 @@ An automated platform for the analysis and quantification of protein structure-o
 `chmod 775 -R ./`
 
 `conda env create -f environment.yml`
+
+./run_qprotein.sh
