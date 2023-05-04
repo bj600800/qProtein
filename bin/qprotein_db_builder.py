@@ -4,7 +4,7 @@
 # Email:     bj600800@gmail.com
 # DATE:      2023/03/06
 
-# Description: Service for building sql database
+# Description: The service code for qProtein database builder
 # ------------------------------------------------------------------------------
 """
 import os.path

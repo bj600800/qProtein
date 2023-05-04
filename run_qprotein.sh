@@ -1,7 +1,7 @@
 #!/bin/bash
 # Description: qProtein startup script
 # Author: Dou Zhixin
-
+echo "Current process ID:"  $$
 #--------------------------------------------------------------------
 # USER config
 
@@ -218,7 +218,7 @@ function annotator() {
     for uni in "${uniprot[@]}";
       do
       diamond_output="$result_dir/$uni.out"
-      awk -F '\t' '$3>70 && $4>200 && $9>90 {print $0}' "$diamond_output" > "${diamond_output%.*}_70_200_90.out"
+      awk -F '\t' '$3>=70 && $4>200 && $9>=90 {print $0}' "$diamond_output" > "${diamond_output%.*}_70_200_90.out"
       done
 
     # parser annotation

@@ -12,7 +12,7 @@ import tempfile
 import os
 from numpy import mean
 from pdbecif.mmcif_tools import MMCIF2Dict
-from pdbecif.mmcif_io import CifFileWriter
+
 from qprotein.utilities import logger
 logger = logger.setup_log(name=__name__)
 
@@ -90,14 +90,6 @@ class Segmenter:
         # right-part missing
         if self.query_end_residue < self.query_length:
             end_residue_number = self.right_unmatched()
-        # print("query_name", self.query_name)
-        # print("query_start", self.query_start_residue)
-        # print("query_end", self.query_end_residue)
-        # print("query_length", self.query_length)
-        # print("subj_start", self.subject_start_residue)
-        # print("subj_end", self.subject_end_residue)
-        # print("subj_length", self.subj_structure_length)
-        # print(start_residue_number, end_residue_number)
         return start_residue_number, end_residue_number
 
     @staticmethod
@@ -147,21 +139,9 @@ class Segmenter:
                                             start_atom=start_atom, end_atom=end_atom)
         return output_cif, cif_id
 
-    def write_cif(self):
+    def run(self):
         output_cif, cif_id = self.get_output_structure()
         float_plddt = float(self.get_plddt_dict(output_cif, cif_id))
         mean_plddt = round(float_plddt, 1)
-        if mean_plddt >= 70:
-            write_cif_path = os.path.join(self.write_cif_path_kw[0],
-                                          '#'.join([self.uniprot_class] + self.write_cif_path_kw[1:] + ([str(mean_plddt)])) + '.cif'
-                                          )
-            writer = CifFileWriter(write_cif_path)
-            writer.write(output_cif)
-            return write_cif_path
-        else:
-            return f"Skipped for low average pLDDT -> {mean_plddt}"
-
-    def run(self):
-        write_cif_path = self.write_cif()
         os.remove(self.temp_cif_path)
-        return write_cif_path
+        return output_cif, mean_plddt

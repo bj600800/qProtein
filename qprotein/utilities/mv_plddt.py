@@ -11,8 +11,8 @@ import os
 import shutil
 from tqdm import tqdm
 
-task_name = "manure"
-root_path = r"D:\subject\active\1-qProtein\data"
+task_name = "tibet"
+root_path = r"/home/dzx/qprotein/task"
 work_path = os.path.join(root_path, task_name)
 structure_path = os.path.join(work_path, 'structure')
 statistics_file = os.path.join(work_path, 'statistics_plddt.txt')
@@ -25,7 +25,7 @@ if not os.path.exists(good_plddt_dir):
     os.mkdir(good_plddt_dir)
 
 for i in tqdm(file):
-    plddt = os.path.splitext(i)[0].split("#")[2]
+    plddt = os.path.splitext(i)[0].split("#")[-1]
     if float(plddt) >= 90:
         source = os.path.join(structure_path, i)
         target = os.path.join(high_plddt_dir, i)

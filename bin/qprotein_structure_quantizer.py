@@ -24,7 +24,7 @@ args = parser.parse_args()
 
 def run():
     task_dir = args.task_dir
-    struct_dir = os.path.join(task_dir, 'structure')
+    struct_dir = os.path.join(task_dir, 'high_plddt')
     output_file = os.path.join(task_dir, 'structure_results.csv')
     multiprocess(struct_dir, output_file)
 

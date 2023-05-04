@@ -17,6 +17,7 @@ import random
 from tqdm import tqdm
 import requests
 from requests.adapters import Retry
+from pdbecif.mmcif_io import CifFileWriter
 
 from qprotein.database.sqlite3_searcher import SqlSearch
 from qprotein.structure.StructureSegmenter import Segmenter
@@ -48,12 +49,9 @@ class TargetNameRetriever(SqlSearch):
         return results_list
 
     def get_exist_query(self):
-        if os.path.exists(self.structure_dir_path):
-            exist_structure = os.listdir(self.structure_dir_path)
-            exist_query_name = [i.split('#')[1] for i in exist_structure]
-            return exist_query_name
-        else:
-            return []
+        exist_structure = [os.listdir(path) for path in self.structure_dir_path if os.path.exists(path)]
+        exist_query_name = [item.split('#')[1] for structure_dir in exist_structure for item in structure_dir]
+        return exist_query_name
 
     def get_NO_structure_query(self):
         if os.path.exists(self.log_file):
@@ -65,9 +63,9 @@ class TargetNameRetriever(SqlSearch):
 
     def filter_results(self):
         exist_query_name = self.get_exist_query()
-        logger.info(f'Found {len(exist_query_name)} structure(s) in {os.path.abspath(self.structure_dir_path)}')
+        logger.info(f'Found {len(exist_query_name)} structure(s)')
         invalid_query_name = self.get_NO_structure_query()
-        logger.info(f'Found {len(invalid_query_name)} non-structural targets in {os.path.abspath(self.log_file)}')
+        logger.info(f'Found {len(invalid_query_name)} non-structural targets')
 
         results_list = [result for result in tqdm(self.get_sql_results(), desc='Filter query targets', unit='step')
                         if result[0] not in exist_query_name
@@ -198,6 +196,26 @@ class Consumer(threading.Thread):
         cif_str = response.content.decode('utf-8')
         return cif_str
 
+    def write_cif(self, mean_plddt, output_cif, uniprot_class, query_name, uniprot_acc):
+        high_plddt_dir_path, confident_plddt_dir_path = self.structure_dir_path
+
+        if mean_plddt >= 90:
+            write_cif_path = os.path.join(high_plddt_dir_path,
+                                          '#'.join([uniprot_class, query_name, uniprot_acc, str(mean_plddt)])
+                                          ) + ".cif"
+            writer = CifFileWriter(write_cif_path)
+            writer.write(output_cif)
+            return write_cif_path
+        elif 70 <= mean_plddt < 90:
+            write_cif_path = os.path.join(high_plddt_dir_path,
+                                          '#'.join([uniprot_class, query_name, uniprot_acc, str(mean_plddt)])
+                                          ) + ".cif"
+            writer = CifFileWriter(write_cif_path)
+            writer.write(output_cif)
+            return write_cif_path
+        else:
+            return f"Skipped for low average pLDDT -> {mean_plddt}"
+
     def map_structure(self, cif_str, query_info):
         query_name, query_length, uniprot_acc, identity, coverage, query_match_length, query_start_residue, \
             query_end_residue, subject_start_residue, subject_end_residue, uniprot_class = query_info
@@ -208,11 +226,11 @@ class Consumer(threading.Thread):
                               query_end_residue=query_end_residue, query_match_length=query_match_length,
                               query_length=query_length, write_cif_path_kw=write_cif_path_kw, uniprot_class=uniprot_class
                               )
-        # print(uniprot_acc)
         try:
-            write_cif_path = segmenter.run()
+            output_cif, mean_plddt = segmenter.run()
+            write_cif_path = self.write_cif(output_cif=output_cif, mean_plddt=mean_plddt, uniprot_class=uniprot_class,
+                                            query_name=query_name, uniprot_acc=uniprot_acc)
             return write_cif_path
-
         except:
             return
 
@@ -246,9 +264,14 @@ def get_producer_comsumer_num():
     return 1, 1
 
 
-def map_multiprocess(summary_results_db, structure_dir_path, log_file):
-    if not os.path.exists(structure_dir_path):
-        os.mkdir(structure_dir_path)
+def map_multiprocess(task_dir):
+    summary_results_db = os.path.join(task_dir, "qprotein_results.db")
+    log_file = os.path.join(task_dir, "404NotFoundURL.txt")
+    structure_dir = ("high_structure", "confident_structure")
+    structure_dir_path = [os.path.join(task_dir, i) for i in structure_dir]
+    for path in structure_dir_path:
+        if not os.path.exists(path):
+            os.mkdir(path)
     query_info_queue = Queue(maxsize=0)
     structure_info_queue = Queue(maxsize=0)
     target_handler = TargetNameRetriever(summary_results_db=summary_results_db, structure_dir_path=structure_dir_path,
@@ -269,7 +292,8 @@ def map_multiprocess(summary_results_db, structure_dir_path, log_file):
 
         consumer_thread_list = []
         for i in range(consumer_thread):
-            t = Consumer(query_info_queue=query_info_queue, structure_info_queue=structure_info_queue, structure_dir_path=structure_dir_path)
+            t = Consumer(query_info_queue=query_info_queue, structure_info_queue=structure_info_queue,
+                         structure_dir_path=structure_dir_path)
             consumer_thread_list.append(t)
             t.daemon = True
             t.start()
@@ -283,3 +307,8 @@ def map_multiprocess(summary_results_db, structure_dir_path, log_file):
         logger.info('All threads for structure processing finished!')
     else:
         logger.info("No query sequence needs to map structure")
+
+
+if __name__ == '__main__':
+    task_dir = r"C:\Users\bj600\Desktop\test"
+    map_multiprocess(task_dir)

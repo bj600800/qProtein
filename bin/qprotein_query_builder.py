@@ -4,7 +4,7 @@
 # Email:     bj600800@gmail.com
 # DATE:      2023/04/24
 
-# Description: Add query fasta to qprotein_db
+# Description: The service code for building database of query sequences
 # ------------------------------------------------------------------------------
 """
 import os.path

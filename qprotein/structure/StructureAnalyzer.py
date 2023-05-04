@@ -10,6 +10,8 @@
 import os
 import io
 import csv
+import time
+
 from tqdm import tqdm
 import threading
 import multiprocessing
@@ -28,7 +30,8 @@ def get_dssp_cif(struct_path):
     parser = MMCIFParser()
     struct_file_name = os.path.split(struct_path)[1].split('.')[0]
     model = parser.get_structure(struct_file_name, struct_path)[0]
-    dssp = DSSP(model, struct_path, dssp="mkdssp")
+    # dssp = DSSP(model, struct_path, dssp="mkdssp")
+    dssp = DSSP(model, struct_path, dssp=r"D:\subject\active\1-qProtein\tools\dssp\dssp-3.0.0-win32.exe")
     dssp_dat = [residue_dat for residue_dat in dssp]
     return dssp_dat
 
@@ -158,24 +161,23 @@ def process_structure(struct_path):
 
 
 class Producer(threading.Thread):
-    def __init__(self, path_queue, results_queue):
+    def __init__(self, path_queue, results_queue, pbar, thread):
         super(Producer, self).__init__()
         self.path_queue = path_queue
         self.results_queue = results_queue
+        self.pbar = pbar
+        self.thread = thread
 
     def run(self):
         while True:
-            if self.path_queue.empty():
-                logger.info("All structure analyzing finished")
-                break
             struct_path = self.path_queue.get()
             struct_name = os.path.split(struct_path)[1].split('.')[0]
-            try:
-                if os.stat(struct_path).st_size != 0:
-                    results = process_structure(struct_path)
-                    self.results_queue.put((struct_name, results))
-            except ValueError:
-                logger.debug(f"ERROR arisen:  {struct_name}")
+            results = process_structure(struct_path)
+            self.results_queue.put((struct_name, results))
+            if self.pbar:
+                self.pbar.update(1)
+            if self.path_queue.empty():
+                break
 
 
 class Consumer(threading.Thread):
@@ -186,21 +188,21 @@ class Consumer(threading.Thread):
         self.output_file = output_file
         self.pbar = pbar
 
+    def insert_sql(self):
+        # Todo
+        pass
+
     def run(self):
-        while True:
-            try:
-                struct_name, results = self.results_queue.get()
-            except:
-                continue
-            self.results_queue.task_done()
-            if self.pbar is not None:
-                self.pbar.update(1)
-            if self.path_queue.empty() and self.results_queue.empty():
-                logger.info('All structure analyzing results are saved!')
-                break
-            with open(self.output_file, 'a+', newline='') as csvfile:
+        with open(self.output_file, 'a+', newline='') as csvfile:
+            while True:
+                (struct_name, results) = self.results_queue.get()
                 writer = csv.writer(csvfile)
                 writer.writerow([struct_name] + [str(value) for subdict in results.values() for value in subdict.values()])
+                # insert_many()
+                if self.pbar:
+                    self.pbar.update(1)
+                if self.results_queue.empty():
+                    break
 
 
 def get_process_num():
@@ -221,27 +223,27 @@ def multiprocess(struct_dir, output_file):
     path_queue = Queue(maxsize=0)
     results_queue = Queue(maxsize=0)
     producer_thread, consumer_thread = get_process_num()
-    logger.info(f"Analyzing thread number: {producer_thread}")
+    logger.info(f"Start to analyze the structures with {producer_thread} threads")
 
     struct_path_list = [os.path.join(struct_dir, i) for i in os.listdir(struct_dir) if os.path.splitext(i)[1] == '.cif']
     if struct_path_list:
         for path in struct_path_list:
             path_queue.put(path)
-
         producer_thread_list = []
-        for i in range(producer_thread):
-            t = Producer(path_queue=path_queue, results_queue=results_queue)
-            producer_thread_list.append(t)
-            t.daemon = True
-            t.start()
-
-            with tqdm(total=len(struct_path_list), desc="Structure analyzed progress") as pbar:
-                consumer = Consumer(path_queue=path_queue, results_queue=results_queue,
-                                    output_file=output_file, pbar=pbar)
-                consumer.daemon = True
-                consumer.start()
-                for t in producer_thread_list:
-                    t.join()
-                logger.info('All threads for structure analyzing finished!')
+        with tqdm(total=len(struct_path_list), desc="Structure analyzing progress") as pbar:
+            for i in range(producer_thread):
+                t = Producer(path_queue=path_queue, results_queue=results_queue, pbar=pbar, thread=i)
+                producer_thread_list.append(t)
+                t.start()
+            for i in producer_thread_list:
+                i.join()
+        logger.info('Start to save the computing results')
+        time.sleep(2)
+        with tqdm(total=results_queue.qsize(), desc="Results saving progress") as pbar:
+            consumer = Consumer(path_queue=path_queue, results_queue=results_queue,
+                                output_file=output_file, pbar=pbar)
+            consumer.start()
+            consumer.join()
+        logger.info('Structure analyzing mission finished!')
     else:
         logger.info("No structure needs to analyze")

@@ -4,7 +4,7 @@
 # Email:     bj600800@gmail.com
 # DATE:      2023/03/06
 
-# Description: main function to process and manage.
+# Description: The service code for sequence annotation
 # ------------------------------------------------------------------------------
 """
 import os.path

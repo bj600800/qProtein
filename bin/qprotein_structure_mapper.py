@@ -22,16 +22,9 @@ parser.add_argument('--task_dir', required=True, help='Specific the task directo
 args = parser.parse_args()
 
 
-def crawl_structure(task_dir):
-    structure_dir_path = os.path.join(task_dir, 'structure')
-    sql_db = os.path.join(task_dir, 'qprotein_results.db')
-    log_file = os.path.join(task_dir, '404NotFoundURL.txt')
-    map_multiprocess(sql_db, structure_dir_path, log_file)
-
-
 def run():
     task_dir = args.task_dir
-    crawl_structure(task_dir)
+    map_multiprocess(task_dir)
 
 
 run()
