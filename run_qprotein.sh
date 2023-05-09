@@ -23,7 +23,7 @@ function usage(){
     cat << EOF
 
 Usage: $0 [command] <options>
-Step 1: makedb    !ONLY USE ME at FIRST!    Make database for uniprot dat file
+Step 1: makedb    !ONLY USE ME at FIRST TIME!    Make database for uniprot dat file
   Required:
     -W, --work_dir <path>           Specify the work directory path for all tasks
     -D, --db_dir <path>             Specify all of the database directory path
@@ -233,10 +233,6 @@ function quantizer() {
         echo "[ERROR] missing required options"
         usage
         exit 1
-    fi
-
-    if [ ! -d "$task_dir/structure" ]; then
-      echo "[ERROR] structure dir for $task_dir not exist"
     fi
 
     if [ ! -f "$STRUCTURE_QUANTIZER_PATH" ]; then
