@@ -197,6 +197,7 @@ class Consumer(threading.Thread):
         return cif_str
 
     def write_cif(self, mean_plddt, output_cif, uniprot_class, query_name, uniprot_acc):
+        ##########################
         high_plddt_dir_path, confident_plddt_dir_path = self.structure_dir_path
 
         if mean_plddt >= 90:
@@ -207,7 +208,7 @@ class Consumer(threading.Thread):
             writer.write(output_cif)
             return write_cif_path
         elif 70 <= mean_plddt < 90:
-            write_cif_path = os.path.join(high_plddt_dir_path,
+            write_cif_path = os.path.join(confident_plddt_dir_path,
                                           '#'.join([uniprot_class, query_name, uniprot_acc, str(mean_plddt)])
                                           ) + ".cif"
             writer = CifFileWriter(write_cif_path)
@@ -267,6 +268,7 @@ def get_producer_comsumer_num():
 def map_multiprocess(task_dir):
     summary_results_db = os.path.join(task_dir, "qprotein_results.db")
     log_file = os.path.join(task_dir, "404NotFoundURL.txt")
+    ##################
     structure_dir = ("high_structure", "confident_structure")
     structure_dir_path = [os.path.join(task_dir, i) for i in structure_dir]
     for path in structure_dir_path:

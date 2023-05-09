@@ -123,4 +123,3 @@ class SearchParam(SqlBuilder, SqlSearch):
         print(data)
         input()
         return data
-

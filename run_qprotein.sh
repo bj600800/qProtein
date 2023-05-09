@@ -2,20 +2,6 @@
 # Description: qProtein startup script
 # Author: Dou Zhixin
 echo "Current process ID:"  $$
-#--------------------------------------------------------------------
-# USER config
-
-#--------------------------------------------------------------------
-
-
-
-
-
-
-
-
-
-
 
 # Setup path for qprotein
 SCRIPT_DIR=$(readlink -f "$(dirname "$0")")
@@ -37,30 +23,30 @@ function usage(){
     cat << EOF
 
 Usage: $0 [command] <options>
-
-makedb
+Step 1: makedb    !ONLY USE ME at FIRST!    Make database for uniprot dat file
   Required:
-    -d, --work_dir <path>           Specify the work directory path for all tasks
+    -W, --work_dir <path>           Specify the work directory path for all tasks
     -D, --db_dir <path>             Specify all of the database directory path
 
-add_query
+Step 2: add_query                           Add query sequences to sql database
   Required:
-    -d, --work_dir <path>           Specify the work directory path for all tasks
-    -f, --query_fasta <path>         Path to the query fasta file
+    -W, --work_dir <path>           Specify the work directory path for all tasks
+    -f, --query_fasta <path>        Path to the query fasta file
 
-annotator
+Step 3: annotator                           Annotate query sequences with uniprot and functional database
   Required:
-    -d, --work_dir <path>           Specify the work directory path for all tasks
-    -D, --db_dir <path>             Specify all of the database directory path
-    -T, --task_dir <path>           Specific the task directory for each query
+    -W, --work_dir <path>           Specify the work directory path for all tasks
+    -D, --db_dir <path>             Specify the root database directory path
+    -d, --task_dir <path>           Specific the query directory
+    -f, --query_fasta <path>        Path to the query fasta file
 
-mapper
+Step 4: mapper                              Map protein structures
   Required:
-    -T, --task_dir <path>           Specific the task directory for each query
+    -d, --task_dir <path>           Specific the query directory
 
-quantizer
+Step 5: quantizer                           quantize protein structures
   Required:
-    -T, --task_dir <path>           Specific the task directory for each query
+    -d, --task_dir <path>           Specific the query directory
 
 Common options:
   -v, --version                     Show the version and path infomation
@@ -71,7 +57,7 @@ EOF
 # ---------------------------------------------------------------------------
 
 # Define options
-OPTIONS=vhd:D:T:f:
+OPTIONS=vhW:D:d:f:
 LONGOPTIONS=version,help,work_dir:,db_dir:,task_dir:,query_fasta:
 
 ARGS=$(getopt --options=$OPTIONS --longoptions=$LONGOPTIONS -- "$@")
@@ -94,7 +80,7 @@ while true; do
             usage
             exit
             ;;
-        -d|--work_dir)
+        -W|--work_dir)
             work_dir=$(readlink -f "$2")
             shift 2
             ;;
@@ -102,7 +88,7 @@ while true; do
             db_dir=$(readlink -f "$2")
             shift 2
             ;;
-        -T|--task_dir)
+        -d|--task_dir)
             task_dir=$(readlink -f "$2")
             shift 2
             ;;
@@ -205,32 +191,20 @@ function annotator() {
     uniprot=("uniprot_sprot" "uniprot_trembl")
     for uni in "${uniprot[@]}";
       do
+        if [ ! -f "$result_dir/$uni.out" ]; then
           file_path="$db_dir/uniprot/sequence/$uni.dmnd"
           echo "$(date +"%Y-%m-%d %H:%M:%S,%3N") [INFO]: $uni annotation start"
-          diamond blastp --db "$file_path" --query "$query_fasta" --out "$result_dir/$file.out" \
+          diamond_output="$result_dir/$uni.out"
+          diamond blastp --db "$file_path" --query "$query_fasta" --out "$diamond_output" \
           --outfmt 6 qseqid sseqid pident length qstart qend sstart send qcovhsp evalue \
           --sensitive --max-target-seqs 1 --evalue 1e-5 > /dev/null
+          awk -F '\t' '$3>=70 && $4>200 && $9>=90 {print $0}' "$diamond_output" > "${diamond_output%.*}_70_200_90.out"
           echo "$(date +"%Y-%m-%d %H:%M:%S,%3N") [INFO]: $uni annotation finished"
-      done
-
-    # annotation parser
-    # filter diamond output for uniprot
-    for uni in "${uniprot[@]}";
-      do
-      diamond_output="$result_dir/$uni.out"
-      awk -F '\t' '$3>=70 && $4>200 && $9>=90 {print $0}' "$diamond_output" > "${diamond_output%.*}_70_200_90.out"
+        fi
       done
 
     # parser annotation
-    python $ANNOTATION_PARSER_PATH --work_dir="$work_dir" --task_dir="$task_dir"
-
-#    # merops annotation
-#    merops_dmnd_path="$db_dir/merops/merops.dmnd"
-#    echo "$(date +"%Y-%m-%d %H:%M:%S,%3N") [INFO]: Merops annotation start"
-#    diamond blastp --db "$merops_dmnd_path" --query "$query_fasta" --out "$result_dir/merops.out" \
-#    --outfmt 6 qseqid sseqid pident length qstart qend sstart send qcovhsp evalue \
-#    --sensitive --max-target-seqs 1 --evalue 1e-5 > /dev/null
-#    echo "$(date +"%Y-%m-%d %H:%M:%S,%3N") [INFO]: Merops annotation finished"
+    python $ANNOTATION_PARSER_PATH --work_dir="$work_dir" --task_dir="$task_dir" --query_fasta="$query_fasta"
 }
 
 function mapper() {

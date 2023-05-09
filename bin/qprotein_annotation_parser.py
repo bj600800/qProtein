@@ -20,6 +20,7 @@ logger = logger.setup_log(name=__name__)
 parser = argparse.ArgumentParser(description='Crawl query structure with multiprocessing.')
 parser.add_argument('--work_dir', required=True, help='All task dirs should be here')
 parser.add_argument('--task_dir', required=True, help='Specific the task directory')
+parser.add_argument('--query_fasta', required=True, help='Path to the query fasta file')
 args = parser.parse_args()
 
 
@@ -95,6 +96,7 @@ def insert_query_length(task_name, summary_sql_path, fasta_sql_path):
 def run():
     work_dir = args.work_dir
     task_dir = args.task_dir
+    query_fasta = args.query_fasta
     if not os.path.exists(task_dir):
         logger.info('Create dir', task_dir)
         os.mkdir(task_dir)
@@ -112,7 +114,7 @@ def run():
     annotate_trembl(summary_sql_path=summary_sql_path, uniprot_db=uniprot_db)
     # insert_cazy(cazy_output=cazy_output, sql_path=summary_sql_path)
     # insert_merops(merops_output=merops_output, summary_sql_path=summary_sql_path)
-    insert_query_length(task_name=os.path.split(task_dir)[-1], summary_sql_path=summary_sql_path, fasta_sql_path=uniprot_db)
+    insert_query_length(task_name=os.path.splitext(os.path.basename(query_fasta))[0], summary_sql_path=summary_sql_path, fasta_sql_path=uniprot_db)
 
 
 run()
