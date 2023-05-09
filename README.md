@@ -2,10 +2,8 @@
 An automated platform for the analysis and quantification of protein structure-omics.
 
 ## Requirements
-```
 - gcc (if missing)
   - for Ubuntu: sudo apt install gcc
-```
 
 ## Installing and Building from source
 
