@@ -4,7 +4,7 @@ An automated platform for the analysis and quantification of protein structure-o
 ## Requirements
 ```
 - gcc (if missing)
-  - for Ubuntu: `sudo apt install gcc`
+  - for Ubuntu: sudo apt install gcc
 ```
 
 ## Installing and Building from source
