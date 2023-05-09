@@ -23,29 +23,24 @@ function usage(){
     cat << EOF
 
 Usage: $0 [command] <options>
-Step 1: makedb    !ONLY USE ME at FIRST TIME!    Make database for uniprot dat file
-  Required:
+Step 1: makedb    [Warning! CALL ME ONLY at the FIRST TIME!]    Make database for uniprot dat file
     -W, --work_dir <path>           Specify the work directory path for all tasks
     -D, --db_dir <path>             Specify all of the database directory path
 
 Step 2: add_query                           Add query sequences to sql database
-  Required:
     -W, --work_dir <path>           Specify the work directory path for all tasks
     -f, --query_fasta <path>        Path to the query fasta file
 
 Step 3: annotator                           Annotate query sequences with uniprot and functional database
-  Required:
     -W, --work_dir <path>           Specify the work directory path for all tasks
     -D, --db_dir <path>             Specify the root database directory path
     -d, --task_dir <path>           Specific the query directory
     -f, --query_fasta <path>        Path to the query fasta file
 
 Step 4: mapper                              Map protein structures
-  Required:
     -d, --task_dir <path>           Specific the query directory
 
 Step 5: quantizer                           quantize protein structures
-  Required:
     -d, --task_dir <path>           Specific the query directory
 
 Common options:

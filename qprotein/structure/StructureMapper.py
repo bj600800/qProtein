@@ -197,7 +197,6 @@ class Consumer(threading.Thread):
         return cif_str
 
     def write_cif(self, mean_plddt, output_cif, uniprot_class, query_name, uniprot_acc):
-        ##########################
         high_plddt_dir_path, confident_plddt_dir_path = self.structure_dir_path
 
         if mean_plddt >= 90:
@@ -268,7 +267,6 @@ def get_producer_comsumer_num():
 def map_multiprocess(task_dir):
     summary_results_db = os.path.join(task_dir, "qprotein_results.db")
     log_file = os.path.join(task_dir, "404NotFoundURL.txt")
-    ##################
     structure_dir = ("high_structure", "confident_structure")
     structure_dir_path = [os.path.join(task_dir, i) for i in structure_dir]
     for path in structure_dir_path:
@@ -306,7 +304,10 @@ def map_multiprocess(task_dir):
         for t in producer_thread_list:
             t.join()
 
-        logger.info('All threads for structure processing finished!')
+        total_structure = 0
+        for dir_path in structure_dir_path:
+            total_structure += len(os.listdir(dir_path))
+        logger.info(f'qProtein collected {total_structure} structures')
     else:
         logger.info("No query sequence needs to map structure")
 

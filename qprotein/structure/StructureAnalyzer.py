@@ -211,7 +211,7 @@ def get_process_num():
     return core_num
 
 
-def multiprocess(struct_dir, output_file):
+def analyze(struct_dir, output_file):
     with open(output_file, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(['', 'helix', 'sheet', 'loop', 'turn', 'bend', 'bridge', 'hbond_density',
@@ -223,7 +223,8 @@ def multiprocess(struct_dir, output_file):
     producer_thread = get_process_num()
     logger.info(f"Start {producer_thread} threads for analyzing the structures")
 
-    struct_path_list = [os.path.join(struct_dir, i) for i in os.listdir(struct_dir) if os.path.splitext(i)[1] == '.cif']
+    struct_path_list = [os.path.join(struct_dir, i) for i in os.listdir(struct_dir) if os.path.splitext(i)[1] == '.cif'
+                        and os.path.getsize(os.path.join(struct_dir, i)) > 0]
     if struct_path_list:
         for path in struct_path_list:
             path_queue.put(path)
@@ -247,9 +248,4 @@ def multiprocess(struct_dir, output_file):
         consumer.start()
         consumer.join()
     logger.info('Structure analyzing mission finished!')
-#
-#
-# if __name__ == '__main__':
-#     struct_dir = r"C:\Users\bj600\Desktop\structure"
-#     output_file = r"C:\Users\bj600\Desktop\test.csv"
-#     multiprocess(struct_dir, output_file)
+
