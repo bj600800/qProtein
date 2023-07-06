@@ -17,10 +17,6 @@ logger = logger.setup_log(name=__name__)
 
 
 class SqlSearch(object):
-    def __init__(self, sql_db):
-        self.records = []
-        self.record_counter = 0
-        self.sql_db = sql_db
 
     @staticmethod
     def connect_sql(sql_db):

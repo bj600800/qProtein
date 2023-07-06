@@ -17,7 +17,7 @@ def search_params(task_dir):
     cover = ["100"]  # ["90", "100"]
     for i in ident:
         for c in cover:
-            if i == "70" and c == "90":
+            if i == "95" and c == "90":
                 return
             param = i + "_200_" + c
             print(param)

@@ -10,7 +10,7 @@
 import os.path
 import sys
 import argparse
-from qprotein.database.query_seq_builder import FastaSql
+from qprotein.database.query_seq_builder import QuerySql
 
 from qprotein.utilities import logger
 
@@ -25,7 +25,7 @@ args = parser.parse_args()
 
 def create_query_seq_table(db_sql_path, fasta_file, task_name):
     try:
-        fasta_db = FastaSql(sql_path=db_sql_path, fasta_file=fasta_file, table_name=task_name)
+        fasta_db = QuerySql(sql_path=db_sql_path, fasta_file=fasta_file, table_name=task_name)
         fasta_db.run()
     except Exception as e:
         logger.debug(e)

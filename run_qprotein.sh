@@ -131,11 +131,11 @@ function makedb {
         diamond makedb --in $file_path --db "${file_path%%.*}" > /dev/null
         echo "$(date +"%Y-%m-%d %H:%M:%S,%3N") [INFO]: Diamond makedb finished"
     done
-#    # build database for merops
-#    merops_path="$db_dir/merops/merops.fasta"
-#    echo "$(date +"%Y-%m-%d %H:%M:%S,%3N") [INFO]: Making database using Diamond for $merops_path "
-#    diamond makedb --in $merops_path --db "$(dirname "$merops_path")/merops"  > /dev/null
-#    echo "$(date +"%Y-%m-%d %H:%M:%S,%3N") [INFO]: Diamond makedb finished"
+#    # build database for PDB
+    pdb_path="$db_dir/pdb/pdb.fasta"
+    echo "$(date +"%Y-%m-%d %H:%M:%S,%3N") [INFO]: Making database using Diamond for $pdb_path "
+    diamond makedb --in $pdb_path --db "$(dirname "$pdb_path")/pdb"  > /dev/null
+    echo "$(date +"%Y-%m-%d %H:%M:%S,%3N") [INFO]: Diamond makedb finished"
 }
 
 function add_query() {
@@ -193,13 +193,21 @@ function annotator() {
           diamond blastp --db "$file_path" --query "$query_fasta" --out "$diamond_output" \
           --outfmt 6 qseqid sseqid pident length qstart qend sstart send qcovhsp evalue \
           --sensitive --max-target-seqs 1 --evalue 1e-5 > /dev/null
-          awk -F '\t' '$3>=70 && $4>200 && $9>=90 {print $0}' "$diamond_output" > "${diamond_output%.*}_70_200_90.out"
           echo "$(date +"%Y-%m-%d %H:%M:%S,%3N") [INFO]: $uni annotation finished"
         fi
       done
 
+    for uni in "${uniprot[@]}";
+      do
+        diamond_output="$result_dir/$uni.out"
+        awk -F '\t' '$3>=100 && $4>200 && $9>=100 {print $0}' "$diamond_output" > "${diamond_output%.*}_100_200_100.out"
+      done
+
     # parser annotation
     python $ANNOTATION_PARSER_PATH --work_dir="$work_dir" --task_dir="$task_dir" --query_fasta="$query_fasta"
+
+    # PDB annotation
+
 }
 
 function mapper() {

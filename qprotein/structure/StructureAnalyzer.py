@@ -180,7 +180,6 @@ class Producer(threading.Thread):
                 self.pbar.update(1)
 
 
-
 class Consumer(threading.Thread):
     def __init__(self, output_file, path_queue, results_queue, pbar):
         super(Consumer, self).__init__()

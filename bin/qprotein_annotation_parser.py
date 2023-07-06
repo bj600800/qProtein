@@ -102,8 +102,8 @@ def run():
         os.mkdir(task_dir)
     summary_sql_path = os.path.join(task_dir, 'qprotein_results.db')
     uniprot_db = os.path.join(work_dir, 'qprotein_db.db')
-    sprot_dmnd_output = os.path.join(task_dir, "annotation_results", "uniprot_sprot_70_200_90.out")
-    trembl_dmnd_output = os.path.join(task_dir, "annotation_results", 'uniprot_trembl_70_200_90.out')
+    sprot_dmnd_output = os.path.join(task_dir, "annotation_results", "uniprot_sprot_95_200_90.out")
+    trembl_dmnd_output = os.path.join(task_dir, "annotation_results", 'uniprot_trembl_95_200_90.out')
     # cazy_output = os.path.join(task_dir, 'cazy_overview.txt')
     # merops_output = os.path.join(task_dir, 'merops.out')
 
@@ -114,7 +114,8 @@ def run():
     annotate_trembl(summary_sql_path=summary_sql_path, uniprot_db=uniprot_db)
     # insert_cazy(cazy_output=cazy_output, sql_path=summary_sql_path)
     # insert_merops(merops_output=merops_output, summary_sql_path=summary_sql_path)
-    insert_query_length(task_name=os.path.splitext(os.path.basename(query_fasta))[0], summary_sql_path=summary_sql_path, fasta_sql_path=uniprot_db)
+    insert_query_length(task_name=os.path.splitext(os.path.basename(query_fasta))[0], summary_sql_path=summary_sql_path,
+                        fasta_sql_path=uniprot_db)
 
 
 run()

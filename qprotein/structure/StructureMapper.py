@@ -32,16 +32,15 @@ class TargetNameRetriever(SqlSearch):
     """
 
     def __init__(self, summary_results_db, structure_dir_path, log_file):
-        super(TargetNameRetriever, self).__init__(sql_db=summary_results_db)
+        super(TargetNameRetriever, self).__init__()
+        self.sql_db = summary_results_db
         self.structure_dir_path = structure_dir_path
         self.log_file = log_file
-
+    
     def get_sql_results(self):
         cursor = self.connect_sql(sql_db=self.sql_db)
-        sql_cmd = "SELECT query_name, seq_length, sprot_acc, sprot_ident, sprot_cover, sprot_match_length," \
-                  "sprot_query_start, sprot_query_end, sprot_subject_start, sprot_subject_end," \
-                  "trembl_acc, trembl_ident, trembl_cover, trembl_match_length, trembl_query_start," \
-                  "trembl_query_end, trembl_subject_start, trembl_subject_end  " \
+        sql_cmd = "SELECT query_name, seq_length, sprot_acc, sprot_subject_start, sprot_subject_end," \
+                  "trembl_acc, trembl_subject_start, trembl_subject_end  " \
                   "FROM results_summary WHERE sprot_acc != '' or trembl_acc != ''"
 
         results_list = self.fetch_results(cursor=cursor, sql_cmd=sql_cmd)
@@ -49,8 +48,9 @@ class TargetNameRetriever(SqlSearch):
         return results_list
 
     def get_exist_query(self):
-        exist_structure = [os.listdir(path) for path in self.structure_dir_path if os.path.exists(path)]
-        exist_query_name = [item.split('#')[1] for structure_dir in exist_structure for item in structure_dir]
+        exist_structure = [file for path in self.structure_dir_path for file in os.listdir(path)
+                           if os.path.isfile(os.path.join(path, file)) and os.path.getsize(os.path.join(path, file)) > 0]
+        exist_query_name = [item.split('#')[1] for item in exist_structure]
         return exist_query_name
 
     def get_NO_structure_query(self):
@@ -307,7 +307,7 @@ def map_multiprocess(task_dir):
         total_structure = 0
         for dir_path in structure_dir_path:
             total_structure += len(os.listdir(dir_path))
-        logger.info(f'qProtein collected {total_structure} structures')
+        logger.info(f'qProtein collected {total_structure} structures in total')
     else:
         logger.info("No query sequence needs to map structure")
 

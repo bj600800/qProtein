@@ -19,16 +19,6 @@ logger = logger.setup_log(name=__name__)
 
 
 class SqlBuilder(object):
-
-    def __init__(self, sql_db, table_name, column_definition):
-        self.sql_path = sql_db
-        self.table_name = table_name
-        self.column_definition = column_definition
-
-        self.records = []
-        self.record_counter = 0
-        self.total_records = 0
-
     @staticmethod
     def read_text_generator(filename, header):
         with open(filename, 'r') as f:
@@ -76,20 +66,23 @@ class SqlBuilder(object):
         cursor = connect.cursor()
         return cursor
 
-    def insert_many(self, cursor, records: list, values_num):
+    @staticmethod
+    def insert_many(cursor, table_name, records: list, values_num):
         cursor.execute("begin")
         question_mark = ', '.join(['?'] * values_num)
-        cursor.executemany(f"INSERT INTO {self.table_name} VALUES({question_mark})", records)
+        cursor.executemany(f"INSERT INTO {table_name} VALUES({question_mark})", records)
         cursor.execute("commit")
 
-    def insert_many_columns(self, cursor, columns, records: list, values_num):
+    @staticmethod
+    def insert_many_columns(cursor, table_name, columns, records: list, values_num):
         columns = ', '.join(columns)
         cursor.execute("begin")
         question_mark = ', '.join(['?'] * values_num)
-        cursor.executemany(f"INSERT INTO {self.table_name} ({columns}) VALUES ({question_mark})", records)
+        cursor.executemany(f"INSERT INTO {table_name} ({columns}) VALUES ({question_mark})", records)
         cursor.execute("commit")
 
-    def update_many_columns(self, cursor, table_name, columns, records: list):
+    @staticmethod
+    def update_many_columns(cursor, table_name, columns, records: list):
         cursor.execute("begin")
         target_column = columns[0]
         columns_question = ', '.join([i+'=?' for i in columns[1:]])
@@ -98,7 +91,8 @@ class SqlBuilder(object):
         cursor.executemany(sql, format_records)
         cursor.execute("commit")
 
-    def insert_update_columns(self, cursor, table_name, columns, records: list):
+    @staticmethod
+    def insert_update_columns(cursor, table_name, columns, records: list):
         batch_size = 500000
         total_query = len(records)
         question_num = len(columns)
@@ -114,10 +108,11 @@ class SqlBuilder(object):
             cursor.executemany(sql_cmd, batch_acc)
             cursor.execute('commit')
 
-    def create_index(self, cursor, columns):
+    @staticmethod
+    def create_index(cursor, table_name, columns):
         for column in columns:
             cursor.execute('begin')
-            cursor.execute(f"CREATE INDEX IF NOT EXISTS index_{column} ON {self.table_name} ({column})")
+            cursor.execute(f"CREATE INDEX IF NOT EXISTS index_{column} ON {table_name} ({column})")
             cursor.execute('commit')
         cursor.close()
 
