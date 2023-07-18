@@ -18,8 +18,8 @@ logger = logger.setup_log(name=__name__)
 
 
 class Segmenter:
-    def __init__(self, cif_string, query_name, subject_start_residue, subject_end_residue, query_start_residue,
-                 query_end_residue, query_match_length, query_length, write_cif_path_kw, uniprot_class):
+    def __init__(self, cif_string, query_name, subject_start_residue, subject_end_residue,
+                 query_length, write_cif_path_kw, uniprot_class):
         self.cif_dict = None
         self.temp_cif_path = None
         self.subj_structure_length = None
@@ -27,9 +27,6 @@ class Segmenter:
         self.cif_string = cif_string
         self.subject_start_residue = int(subject_start_residue)
         self.subject_end_residue = int(subject_end_residue)
-        self.query_start_residue = int(query_start_residue)
-        self.query_end_residue = int(query_end_residue)
-        self.query_match_length = int(query_match_length)
         self.query_length = int(query_length)
         self.write_cif_path_kw = write_cif_path_kw
         self.uniprot_class = uniprot_class
@@ -62,34 +59,9 @@ class Segmenter:
         avg_plddt = mean(bfactor)
         return avg_plddt
 
-    def left_unmatched(self):
-        # print("###left_unmatched")
-        add_residue = self.query_start_residue - 1
-        if self.subject_start_residue - add_residue > 0:
-            start_residue_number = self.subject_start_residue - add_residue
-        else:
-            start_residue_number = 1
-        return start_residue_number
-
-    def right_unmatched(self):
-        # print("###right_unmatched")
-        add_residue = self.query_length - self.query_end_residue
-        if self.subject_end_residue + add_residue <= self.subj_structure_length:
-            end_residue_number = self.subject_end_residue + add_residue
-        else:
-            end_residue_number = self.subj_structure_length
-        return end_residue_number
-
     def get_start_end_residue(self):
         start_residue_number = self.subject_start_residue
         end_residue_number = self.subject_end_residue
-        # start-part missing
-        if self.query_start_residue > 1:
-            start_residue_number = self.left_unmatched()
-
-        # right-part missing
-        if self.query_end_residue < self.query_length:
-            end_residue_number = self.right_unmatched()
         return start_residue_number, end_residue_number
 
     @staticmethod

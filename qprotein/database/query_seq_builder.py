@@ -15,10 +15,10 @@ logger = logger.setup_log(name=__name__)
 
 
 class QuerySql(SqlBuilder):
-    def __init__(self, sql_path, fasta_file, table_name):
+    def __init__(self, sql_path, fasta_file):
         super(QuerySql, self).__init__()
         self.sql_db = sql_path
-        self.table_name = table_name
+        self.table_name = "results_summary"
         self.column_definition = [("query_name", "TEXT"), ("sequence", "TEXT")]
         self.fasta_file = fasta_file
         self.record_items = {column_name[0]: '' for column_name in self.column_definition}
