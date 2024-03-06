@@ -13,19 +13,24 @@ from Bio import SeqIO
 
 
 def read_save(input_fasta, output_fasta):
-    sequence_length_threshold = 200
     fasta_sequences = SeqIO.parse(open(input_fasta), 'fasta')
-    with open(output_fasta, "w") as wf:
-        for seq_record in fasta_sequences:
-            sequence = seq_record.seq
-            sequence_length = len(sequence)
-            if sequence_length >= sequence_length_threshold:
-                SeqIO.write(seq_record, wf, "fasta")
+    name = set()
+    seq_ret = []
+    for seq_record in fasta_sequences:
+        organism = "_".join(seq_record.description.split("[")[-1].rstrip("]").split(" ")[:2]).lower()
+        if organism not in name:
+            seq_ret.append(seq_record)
+        name.add(organism)
+    
+    SeqIO.write(seq_ret, output_fasta, "fasta")
+    
+        
+        
 
 
 def main():
-    input_fasta = r"D:\subject\active\1-qProtein\data\enzymes\endo-1_4-beta-xylanase\GH11_sequences.fasta"
-    output_fasta = r"D:\subject\active\1-qProtein\data\enzymes\endo-1_4-beta-xylanase\GH11_sequences_filtered.fasta"
+    input_fasta = r"D:\subject\active\1-qProtein\data\enzymes\GH13_5\1_preprocessing\4_temperature_GH13_5_sequences.fasta"
+    output_fasta = r"D:\subject\active\1-qProtein\data\enzymes\GH13_5\1_preprocessing\5_negative_GH13_5_sequences.fasta"
     read_save(input_fasta, output_fasta)
 
 

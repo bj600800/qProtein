@@ -160,7 +160,8 @@ function add_query() {
 
 }
 
-function annotator() {
+function blast() {
+    # put in python
     source "$conda_activate" qprotein
     chmod u+rwx "$work_dir"
 
@@ -191,8 +192,8 @@ function annotator() {
           echo "$(date +"%Y-%m-%d %H:%M:%S,%3N") [INFO]: $uni annotation start"
           diamond_output="$result_dir/$uni.out"
           diamond blastp --db "$file_path" --query "$query_fasta" --out "$diamond_output" \
-          --outfmt 6 qseqid sseqid pident length qstart qend sstart send qcovhsp evalue \
-          --sensitive --max-target-seqs 1 --evalue 1e-5 > /dev/null
+          --outfmt 6 qseqid sseqid pident qstart qend qlen length sstart send qcovhsp \
+          --more-sensitive --max-target-seqs 1 --evalue 1e-10 --id 100 --query-cover 100 > /dev/null
           echo "$(date +"%Y-%m-%d %H:%M:%S,%3N") [INFO]: $uni annotation finished"
         fi
       done
@@ -251,7 +252,7 @@ function quantizer() {
 # Select functions
 if [ "$1" == "makedb" ]; then
     makedb
-elif [ "$1" == "annotator" ]; then
+elif [ "$1" == "blast" ]; then
     annotator
 elif [ "$1" == "add_query" ]; then
     add_query

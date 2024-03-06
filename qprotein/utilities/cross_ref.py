@@ -20,9 +20,10 @@ def read_temper(file):
     return all_temperature
 
 
-def cross_ref(all_temperature, fasta, output_fasta):
+def cross_ref(all_temperature, fasta, positive_fasta, negative_fasta):
     filtered_records = []
     high_records = []
+    low_records = []
     fasta_sequences = list(SeqIO.parse(open(fasta), 'fasta'))
     for seq_record in fasta_sequences:
         description = seq_record.description
@@ -30,14 +31,19 @@ def cross_ref(all_temperature, fasta, output_fasta):
         for temper in all_temperature:
             if organism == temper[0]:
                 seq_record.description = seq_record.description + "_" + temper[2]
-                if int(temper[2]) > 45:
-                    high_records.append(seq_record.description)
-                filtered_records.append(seq_record)
-    print(len(high_records))
-    SeqIO.write(filtered_records, output_fasta, "fasta")
+                if len(str(seq_record.seq)) > 280:
+                    if int(temper[2]) > 50:
+                        high_records.append(seq_record)
+                    if int(temper[2]) < 40:
+                        low_records.append(seq_record)
+    print(high_records)
+    print(len(low_records))
+    # SeqIO.write(high_records, positive_fasta, "fasta")
+    # SeqIO.write(low_records, negative_fasta, "fasta")
 
-csv_file = r"D:\subject\active\1-qProtein\data\bacteria_temperature.csv"
+csv_file = r"D:\subject\active\1-qProtein\data\temperature_db\temperature.csv"
 all_temperature = read_temper(csv_file)
-fasta_file = r"D:\subject\active\1-qProtein\data\enzymes\cazy_endo-1_4-beta-xylanase\3_crawl_sequences_GH11_sequences.fasta"
-output_fasta = r"D:\subject\active\1-qProtein\data\enzymes\cazy_endo-1_4-beta-xylanase\3_temperature_sequences_GH11_sequences.fasta"
-cross_ref(all_temperature, fasta_file, output_fasta)
+fasta_file = r"D:\subject\active\1-qProtein\data\enzymes\GH8\1_preprocessing\5_GH8_rmdup_one_hit_sequence.fasta"
+positive_fasta = r"D:\subject\active\1-qProtein\data\enzymes\GH8\1_preprocessing\6_GH48_positive.fasta"
+negative_fasta = r"D:\subject\active\1-qProtein\data\enzymes\GH8\1_preprocessing\6_GH48_negative.fasta"
+cross_ref(all_temperature, fasta_file, positive_fasta, negative_fasta)

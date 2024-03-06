@@ -12,30 +12,9 @@ import os.path
 from Bio import SeqIO
 from Bio.Seq import Seq
 
-def get_position(fasta):
-    fasta_sequences = list(SeqIO.parse(open(fasta), 'fasta'))
-    first_position = []
-    last_position = []
-    for seq_record in fasta_sequences:
-        if "temperature" in seq_record.description:
-            print(seq_record.description)
-            for position, resi in enumerate(seq_record.seq):
-                if resi != "-":
-                    first = position
-                    first_position.append(first)
-                    print("First position: ", first)
-                    break
-            for position, resi in enumerate(reversed(seq_record.seq)):
-                if resi != "-":
-                    last = len(seq_record.seq) - position
-                    last_position.append(last)
-                    print("last position: ", last)
-                    break
-    return min(first_position), max(last_position)
 
-
-def get_domain(positions, input_fasta, output_fasta):
-    begain_posi, end_posi = positions
+def get_domain(input_fasta, output_fasta):
+    begain_posi, end_posi = (3099, 7274)
     domain_records = []
     fasta_sequences = list(SeqIO.parse(open(input_fasta), 'fasta'))
     for seq_record in fasta_sequences:
@@ -45,10 +24,9 @@ def get_domain(positions, input_fasta, output_fasta):
 
 
 def main():
-    input_fasta = r"D:\subject\active\1-qProtein\data\enzymes\ncbi_endo-1_4-beta-xylanase\5_merged_thermo_ncbi_aligned.fasta"
-    output_fasta = os.path.join(os.path.dirname(input_fasta), "6_temperature_domain.fasta")
-    positions = get_position(input_fasta)
-    get_domain(positions=positions, input_fasta=input_fasta, output_fasta=output_fasta)
+    input_fasta = r"D:\subject\active\1-qProtein\data\enzymes\GH8\1_preprocessing\8_GH8_align_merge_temperature.fasta"
+    output_fasta = r"D:\subject\active\1-qProtein\data\enzymes\GH8\1_preprocessing\9_GH8_cut_align_merge_temperature.fasta"
+    get_domain(input_fasta=input_fasta, output_fasta=output_fasta)
 
 
 if __name__ == '__main__':
