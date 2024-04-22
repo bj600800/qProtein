@@ -6,7 +6,7 @@ An automated platform for the analysis and quantification of protein structure-o
 
 :sparkles: **Interaction Analysis**: Assess four major types of physical interactions: hydrogen bonding, electrostatic interactions, hydrophobic clusters, and disulfide bond.
 
-:heart: **Local Structural Analysis**: Local structural features from specific regions of interest after performing multiple structural alignments.
+:heart: **Local Structural Analysis**: Analyze local structural features within targeted regions of interest following multiple structure alignment.
 
 ## Requirements
 - gcc (if missing)
