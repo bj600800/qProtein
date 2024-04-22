@@ -1,4 +1,5 @@
-# qProtein
+# qProtein: Leveraging evolutionary analysis of protein structures to explore the relationship between structure and function.
+
 An automated platform for the analysis and quantification of protein structure-omics.
 
 ## Key features
