@@ -3,9 +3,9 @@
 A platform for automated structural proteomics analysis.
 
 ## Key features
-:rocket: **Batch Processing**: Transform multiple protein sequences simultaneously, saving you time and effort.
+:rocket: **Batch Processing**: Transform multiple protein sequences to structures.
 
-:sparkles: **Interaction Analysis**: Assess four major types of physical interactions: hydrogen bonding, electrostatic interactions, hydrophobic clusters, and disulfide bond.
+:sparkles: **Interaction Analysis**: Compute four major types of physical interactions: hydrogen bonding, electrostatic interactions, hydrophobic clusters, and disulfide bond.
 
 :heart: **Local Structural Analysis**: Analyze local structural features within targeted regions of interest following multiple structure alignment.
 
