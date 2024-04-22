@@ -2,7 +2,7 @@
 An automated platform for the analysis and quantification of protein structure-omics.
 
 ## Tool features
-:sparkles 1:
+:sparkles:
 
 ## Requirements
 - gcc (if missing)
