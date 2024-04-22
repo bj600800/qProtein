@@ -1,6 +1,6 @@
 # qProtein: Leveraging evolutionary analysis of protein structures to explore the relationship between structure and function.
 
-An automated platform for the analysis and quantification of protein structure-omics.
+A platform for automated structural proteomics analysis.
 
 ## Key features
 :rocket: **Batch Processing**: Transform multiple protein sequences simultaneously, saving you time and effort.
