@@ -3,7 +3,9 @@ An automated platform for the analysis and quantification of protein structure-o
 
 ## Key features
 :sparkles: **Batch Processing**: Transform multiple protein sequences simultaneously, saving you time and effort.
+
 :sparkles: **Comprehensive Analysis**: Assess four major types of physical interactions: hydrogen bonding, electrostatic interactions, hydrophobic clusters, and disulfide bond.
+
 :sparkles: **Local Structural Analysis**: Local structural features from specific regions of interest after performing multiple structural alignments.
 
 ## Requirements
