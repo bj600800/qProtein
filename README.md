@@ -1,7 +1,7 @@
 # qProtein: Leveraging evolutionary analysis of protein structures to explore the relationship between structure and function.
 
 A platform for automated structural proteomics analysis.
-https://raw.githubusercontent.com/bj600800/qProtein/blob/main/figure1_algorithm.tif
+![Interaction algorithm](https://raw.githubusercontent.com/bj600800/qProtein/blob/main/figure1_algorithm.tif)
 ## Key features
 :rocket: **Batch Processing**: Transform multiple protein sequences to structures.
 
