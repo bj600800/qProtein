@@ -4,7 +4,7 @@
 # Email:     bj600800@gmail.com
 # DATE:      2023/04/14
 
-# Description: Step 2. Get structures from AlphaFold structure database.
+# Description: Get structures from AlphaFold structure database.
 # ------------------------------------------------------------------------------
 """
 import io

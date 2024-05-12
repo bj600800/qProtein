@@ -4,8 +4,7 @@
 # Email:     bj600800@gmail.com
 # DATE:      2023/03/13
 
-# Description: Process sequences or Uniprot IDs
-
+# Description: Process input: sequences or Uniprot IDs
 # ------------------------------------------------------------------------------
 """
 import re

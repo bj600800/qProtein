@@ -1,3 +1,12 @@
+"""
+# ------------------------------------------------------------------------------
+# Author:    Dou Zhixin
+# Email:     bj600800@gmail.com
+# DATE:      2023/09/19
+
+# Description: Create sequence map for local analysis
+# ------------------------------------------------------------------------------
+"""
 from Bio import SeqIO
 
 

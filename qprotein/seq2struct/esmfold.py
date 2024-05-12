@@ -4,7 +4,7 @@
 # Email:     bj600800@gmail.com
 # DATE:      2023/09/19
 
-# Description: Step 3. Predict structure for non-structure sequences from sql.
+# Description: Predict structure for non-structure sequences from sql.
 # ------------------------------------------------------------------------------
 """
 import os

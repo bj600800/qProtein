@@ -28,8 +28,11 @@ logger = logger.setup_log(name=__name__)
 
 # Binary executable of US-align tool
 usalign_binary_path = r"/home/softengine/qprotein/USalign/USalign"
+# ESMFold prediction script
 esm_script = r"/opt/app/esm-main/scripts/fold.py"
+# ESMFold directory, looking for checkpoints directory
 esm_dir = r"/opt/app/esm-main/"
+
 #### END OF USER CONFIGURATION ####
 
 
@@ -46,6 +49,9 @@ parser.add_argument('--overall', action='store_true', required=False, default=Fa
 parser.add_argument('--local', action='store_true', required=False, default=False, help='Analysis mode=local')
 parser.add_argument('--template_name', required=False, help='Template model for local analysis')
 parser.add_argument('--template_active_res', required=False, help='Active residues of template model, i.e. 33,35,37,64')
+parser.add_argument('--dist1', required=False, default=12, help='Active region distance')
+parser.add_argument('--dist2', required=False, default=15, help='Intermediate region distance')
+
 args = parser.parse_args()
 
 if args.fasta:
@@ -54,7 +60,7 @@ elif args.id:
 	logger.info(f"Crawl structures from AlphaFold structure database")
 	
 if args.local:
-	if not (args.template_name and args.template_active_res):
+	if not (args.template_name and args.template_active_res and args.dist1 and args.dist2):
 		parser.error("When using local analysis mode, you must specify --template_name")
 		parser.print_help()
 		exit(1)
@@ -176,10 +182,12 @@ def main():
 		# alignment_file = r"D:\subject\active\1-qProtein\code\test\usalign_test.fasta"
 		local_hydrophobic_file = os.path.join(wd, "local_hydrophobic_feature.csv")
 		local_aa_file = os.path.join(wd, "local_aa_feature.csv")
-		local.run(template_name, alignment_file, template_active_architecture, hydrophobic_feature, structure_folder, local_hydrophobic_file, local_aa_file)
+		local.run(template_name, alignment_file,
+		          template_active_architecture, hydrophobic_feature,
+		          structure_folder, local_hydrophobic_file, local_aa_file,
+		          active_edge_dist=int(args.dist1), intermediate_edge_dist=int(args.dist2))
 	
 	t2 = time.time()
-	
 	using_time = t2-t1
 	logger.info(f"qProtein analysis finished in {int(using_time)} seconds!")
 	

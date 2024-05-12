@@ -18,7 +18,7 @@ from qprotein.utilities import align_map, logger
 logger = logger.setup_log(name=__name__)
 
 
-def get_region(structure, active_archi_res, active_edge_dist = 12, intermediate_edge_dist = 15):
+def get_region(structure, active_archi_res, active_edge_dist, intermediate_edge_dist):
 	shell_coord = []
 	for shell_res in active_archi_res:
 		first_shell_coord = structure[
@@ -127,7 +127,8 @@ def save_aa_feature(aa_csv_path, data):
 			                 str(region["overall"]["charge"]), str(region["overall"]["polar"]), str(region["overall"]["hydrophobic"])])
 	logger.info(f"Local amino acid feature saved: {aa_csv_path}")
 
-def run(template_name, alignment_fasta, template_active_architecture, clusters, structure_dir, hydrophobic_csv_path, aa_csv_path):
+def run(template_name, alignment_fasta, template_active_architecture, clusters, structure_dir,
+        hydrophobic_csv_path, aa_csv_path, active_edge_dist, intermediate_edge_dist):
 	map_dict = align_map.run(alignment_fasta)
 	aligned_active_architecture = [map_dict[template_name][int(i)] for i in template_active_architecture]
 	
@@ -143,7 +144,7 @@ def run(template_name, alignment_fasta, template_active_architecture, clusters, 
 			reversed_res_map = {v:k for k, v in res_map.items()}
 			active_archi_res = [reversed_res_map.get(i) for i in aligned_active_architecture]
 			active_archi_res = [i for i in active_archi_res if i is not None]  # clean None
-			active_region, surface_region = get_region(structure, active_archi_res)
+			active_region, surface_region = get_region(structure, active_archi_res, active_edge_dist, intermediate_edge_dist)
 			hydrophobic_region_dict[structure_name] = analyze_hydrophobic(clusters[structure_name], active_region, surface_region)
 			aa_ret = analyze_aa(structure, active_region, surface_region)
 			aa_dict = {}
