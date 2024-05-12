@@ -2,10 +2,6 @@
 
 **A platform for automated structural proteomics analysis.**
 
-## Schematic diagram of interaction algorithm
-![Interaction algorithm](https://github.com/bj600800/qProtein/blob/main/interaction_algorithm.png)
-
-
 ## Key features
 :rocket: **Batch Processing**: Transform multiple protein sequences to structures.
 
@@ -28,6 +24,11 @@ Pdb2pqr
 git clone https://github.com/bj600800/qProtein.git
 
 cd qProtein
+
+## Schematic diagram of interaction algorithm
+![Interaction algorithm](https://github.com/bj600800/qProtein/blob/main/interaction_algorithm.png)
+
+
 
 chmod 775 -R ./
 
