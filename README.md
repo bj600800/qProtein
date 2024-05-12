@@ -14,8 +14,11 @@ A platform for automated structural proteomics analysis.
 
 ## Requirements
 USalign
+
 ESMFold
+
 biotite
+
 pdb2pqr
 
 ## Installing and Building from source
