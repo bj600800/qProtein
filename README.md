@@ -17,9 +17,9 @@ USalign
 
 ESMFold
 
-biotite
+Biotite
 
-pdb2pqr
+Pdb2pqr
 
 ## Installing and Building from source
 
