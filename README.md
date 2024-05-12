@@ -13,8 +13,10 @@ A platform for automated structural proteomics analysis.
 :heart: **Overall and Local Structural Analysis**: Analyze local structural features within targeted regions of interest following multiple structure alignment.
 
 ## Requirements
-- gcc (if missing)
-  - for Ubuntu: sudo apt install gcc
+USalign
+ESMFold
+biotite
+pdb2pqr
 
 ## Installing and Building from source
 
