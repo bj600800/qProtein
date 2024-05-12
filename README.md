@@ -24,14 +24,6 @@ Pdb2pqr
 git clone https://github.com/bj600800/qProtein.git
 
 cd qProtein
-```
-
-## Schematic diagram of interaction algorithm
-![Interaction algorithm](https://github.com/bj600800/qProtein/blob/main/interaction_algorithm.png)
-
-
-
-
 
 chmod 775 -R ./
 
@@ -39,3 +31,7 @@ conda env create -f environment.yml
 
 ./run_qprotein.sh
 ```
+
+## Schematic diagram of interaction algorithm
+![Interaction algorithm](https://github.com/bj600800/qProtein/blob/main/interaction_algorithm.png)
+
