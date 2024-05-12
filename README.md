@@ -2,8 +2,9 @@
 
 A platform for automated structural proteomics analysis.
 
-**Interaction algorithm**
+**Schematic diagram of interaction algorithm**
 ![Interaction algorithm](https://github.com/bj600800/qProtein/blob/main/interaction_algorithm.png)
+
 
 ## Key features
 :rocket: **Batch Processing**: Transform multiple protein sequences to structures.
