@@ -2,7 +2,7 @@
 
 **A platform for automated structural proteomics analysis.**
 
-## chematic diagram of interaction algorithm
+## schematic diagram of interaction algorithm
 ![Interaction algorithm](https://github.com/bj600800/qProtein/blob/main/interaction_algorithm.png)
 
 
