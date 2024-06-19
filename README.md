@@ -9,14 +9,12 @@
 
 :sparkles: **Overall and Local Structural Analysis**: Analyze local structural features within targeted regions of interest following multiple structure alignment.
 
-## Requirements
+## Additional requirements
+For local structure analysis
 [USalign](https://zhanggroup.org/US-align/)
 
-ESMFold
-
-Biotite
-
-Pdb2pqr
+For prediction module
+[ESMFold](https://github.com/facebookresearch/esm)
 
 ## Installing and Building from source
 
@@ -25,11 +23,9 @@ git clone https://github.com/bj600800/qProtein.git
 
 cd qProtein
 
-chmod 775 -R ./
-
 conda env create -f environment.yml
 
-./run_qprotein.sh
+python run_qprotein.py
 ```
 
 ## Schematic diagram of interaction algorithm
