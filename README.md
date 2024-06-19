@@ -10,7 +10,7 @@
 :sparkles: **Overall and Local Structural Analysis**: Analyze local structural features within targeted regions of interest following multiple structure alignment.
 
 ## Requirements
-USalign
+[USalign](https://zhanggroup.org/US-align/)
 
 ESMFold
 
