@@ -1,4 +1,4 @@
-# qProtein: Leveraging evolutionary analysis of protein structures to explore the relationship between structure and function.
+# qProtein：Exploring physical interaction features of protein thermostability based on structural proteomics
 
 **A platform for automated structural proteomics analysis.**
 
