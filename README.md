@@ -31,6 +31,8 @@ pip install tqdm
 pip install numpy==1.23.5
 pip install biopython==1.83
 ```
+**Notice:**
+Change config params in run_qprotein.py for your installation.
 
 ## Run qProtein
 ```
