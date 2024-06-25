@@ -9,13 +9,6 @@
 
 :sparkles: **Overall and Local Structural Analysis**: Analyze local structural features within targeted regions of interest following multiple structure alignment.
 
-## Additional requirements
-For local structure analysis:
-[USalign](https://zhanggroup.org/US-align/)
-
-For prediction module:
-[ESMFold](https://github.com/facebookresearch/esm)
-
 ## Installing and Building from source
 
 ```
@@ -31,6 +24,15 @@ pip install tqdm
 pip install numpy==1.23.5
 pip install biopython==1.83
 ```
+
+## Additional requirements
+For local structure analysis:
+[USalign](https://zhanggroup.org/US-align/)
+
+For prediction module:
+[ESMFold](https://github.com/facebookresearch/esm)
+
+
 **Notice:**
 Change config params in run_qprotein.py for your installation.
 
