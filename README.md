@@ -23,9 +23,18 @@ git clone https://github.com/bj600800/qProtein.git
 
 cd qProtein
 
-conda env create -f environment.yml
+conda create -n qprotein python=3.9
 
-python run_qprotein.py
+pip install bioitie==0.37.0 
+pip install pdb2pqr
+pip install tqdm
+pip install numpy==1.23.5
+pip install biopython==1.83
+```
+
+## Run qProtein
+```
+python run_qprotein.py --id test/id.txt --dir test --local --template_name P33557 --template_active_res 33,35,37,64,66,91,93,97,99,106,108,115,116,118,142,146,147,148,154,156,158,191,197,199,200 --dist1 12 --dist2 15
 ```
 
 ## Schematic diagram of interaction algorithm
