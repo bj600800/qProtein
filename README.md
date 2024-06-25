@@ -9,7 +9,7 @@
 
 :sparkles: **Overall and Local Structural Analysis**: Analyze local structural features within targeted regions of interest following multiple structure alignment.
 
-## Installing and Building from source
+## Install qProtein
 
 ```
 git clone https://github.com/bj600800/qProtein.git
