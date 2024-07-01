@@ -2,6 +2,9 @@
 
 **A platform for automated structural proteomics analysis.**
 
+## Online web
+https://qprotein.sdu.edu.cn
+
 ## Key features
 :sparkles: **Batch Processing**: Transform multiple protein sequences to structures.
 
