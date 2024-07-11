@@ -51,6 +51,9 @@ python run_qprotein.py --id test/id.txt --dir test
 ```
 
 ### Using user-prepared structures for overall analysis ###
+**Notice:**
+PDB structures shoud be included in the directory named "structure" under the working directory "--dir". Here it refers to "test". So that qProtein will analyze the structures included in "structure/" fold, and output the results in the working directory "test/" fold.
+
 ```
 python run_qprotein.py --dir test
 ```
