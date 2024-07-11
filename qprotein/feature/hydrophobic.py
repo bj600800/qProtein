@@ -11,8 +11,10 @@
 import numpy as np
 import networkx as nx
 import biotite.structure as struc
+import biotite.structure.io as strucio
 from biotite.structure.info import vdw_radius_single
 import warnings
+
 warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -87,92 +89,30 @@ def calculate_weighted_sum_of_clusters(G):
             cluster.append({key: value for key, value in pairs})
             # print(area)
             weighted_sums.append(area)
-    # for res in cluster_res:
+    # for res in cluster:
     #     res_str = '+'.join([str(i) for i in res])
     #     print(res_str)
     # input()
     weighted_sum = sum(weighted_sums)
     max_cluster = max(weighted_sums)
     # sorted_unique_lst = sorted(set(weighted_sums), reverse=True)
-
+    # print("sum:", round(weighted_sum, 2))
     return round(weighted_sum, 2), round(max_cluster, 2), cluster
 
 
 def analyze(atom_array):
     hydrophobic_cluster = {}
+    length = len(set(atom_array.res_id))
     res_pairs = detect_hydrophobic_cluster(atom_array)
     Graph = create_hydrophobic_graph(res_pairs)
     weighted_sum, max_cluster, cluster_res = calculate_weighted_sum_of_clusters(Graph)
     # hydrophobic_cluster['graph'] = Graph
-    hydrophobic_cluster['sum_area'] = weighted_sum
+    hydrophobic_cluster['sum_area'] = weighted_sum/length
     hydrophobic_cluster['max_area'] = max_cluster
     hydrophobic_cluster['cluster'] = cluster_res
     return hydrophobic_cluster
 
 if __name__ == '__main__':
-    import csv
-    from itertools import zip_longest
-    def write2csv(csv_path, data):
-        max_length = max(len(lst) for lst in data)
-        transposed_data = list(zip_longest(*data, fillvalue=None))
-
-        with open(csv_path, 'w', newline='') as csvfile:
-            writer = csv.writer(csvfile)
-            # 写入数据
-            for i, row in enumerate(transposed_data, start=1):
-                writer.writerow([i] + list(row[:max_length]))
-    
-    def write2txt(txt_path, data):
-        with open(txt_path, "w") as f:
-            for i in data:
-                f.write(i[0]+"\t"+str(i[1])+"\n")
-                
-    import os
-    from tqdm import tqdm
-    import biotite.structure.io as strucio
-    # structure_dir = [r"D:\subject\active\1-qProtein\data\enzymes\GH10\2_StrucMapping\positive",
-    #                  r"D:\subject\active\1-qProtein\data\enzymes\GH10\2_StrucMapping\negative"]
-    structure_dir = r"D:\subject\active\1-qProtein\data\enzymes\GH11\2_StrucMapping\positive"
-    # csv_path = r"C:\Users\bj600\Desktop\ms\hydrophobic.csv"
-    txt_path = r"C:\Users\bj600\Desktop\hydrophobic.txt"
-    all_ret = []
-    ret = []
-    # for sdir in structure_dir:
-    #     one_ret = []
-    #     for struct in tqdm(os.listdir(sdir)):
-    #         structure_path = os.path.join(sdir, struct)
-    #         structure = strucio.load_structure(structure_path)
-    #         seq_len = max(structure.res_id)
-    #         out = analyze(atom_array=structure)
-    for structure_file in os.listdir(structure_dir):
-        structure_path = os.path.join(structure_dir, structure_file)
-        structure = strucio.load_structure(structure_path)
-        out = analyze(atom_array=structure)
-        ret.append([structure_file.split(".")[0], out["sum_area"]])
-    write2txt(txt_path=txt_path, data=ret)
-    #         one_ret.append(out["sum_area"]/seq_len)
-    #         # print(out["sum_area"]/seq_len)
-    #     all_ret.append(one_ret)
-    # write2csv(csv_path=csv_path, data=all_ret)
-    # from scipy.stats import ranksums
-    # statistic, p_value = ranksums(all_ret[0], all_ret[1])
-    # # 输出结果
-    # print("最大疏水面积")
-    # print("T 统计值：", statistic)
-    # print("P 值：", p_value)
-    # print("嗜热：", np.mean(all_ret[0]))
-    # print("非嗜热：", np.mean(all_ret[1]))
-    
-    # import biotite.structure.io as strucio
-    # dir_path = r"D:\subject\active\3-PETase\data\test"
-    # structure_list = os.listdir(dir_path)
-    # for structure_name in structure_list:
-    #     structure_path = os.path.join(dir_path, structure_name)
-    #     structure = strucio.load_structure(structure_path)
-    #     out = analyze(structure)
-    #     seq_len = max(structure.res_id)
-    #     print(structure_name)
-    #     print(out["sum_area"]/seq_len)
-    #     print()
-        
-    
+	struc_path = r"C:\Users\bj600\Desktop\GI24158867.pdb"
+	structure = strucio.load_structure(struc_path)
+	analyze(structure)

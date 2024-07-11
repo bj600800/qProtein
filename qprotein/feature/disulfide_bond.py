@@ -14,6 +14,7 @@ import biotite.structure as struc
 
 def analyze(structure, distance=2.05, distance_tol=0.05, dihedral=90, dihedral_tol=15):
     disulfide_bonds = []
+    length = len(set(structure.res_id))
     sulfide_mask = (structure.res_name == "CYS") & \
                    (structure.atom_name == "SG")
     cell_list = struc.CellList(
@@ -48,75 +49,7 @@ def analyze(structure, distance=2.05, distance_tol=0.05, dihedral=90, dihedral_t
                 bond_tuple = tuple(sorted((sulfide_i, sulfide_j)))
                 if bond_tuple not in disulfide_bonds:
                     disulfide_bonds.append(bond_tuple)
-    return len(disulfide_bonds)
-    
-def write2txt(txt_path, data):
-    with open(txt_path, "w") as f:
-        for i in data:
-            f.write(i[0]+"\t"+str(i[1])+"\n")
-            
-if __name__ == '__main__':
-    import os
-    import biotite.structure.io as strucio
-    structure_dir = r"C:\Users\bj600\Desktop\ms"
-    txt_path = r"C:\Users\bj600\Desktop\disulfide_bond_num.txt"
-    ret = []
-    for structure_file in os.listdir(structure_dir):
-        structure_path = os.path.join(structure_dir, structure_file)
-        structure = strucio.load_structure(structure_path)
-        out = analyze(structure)
-        ds = len(out)
-        ret.append([structure_file.split(".")[0], ds])
-    write2txt(txt_path=txt_path, data=ret)
-    # import csv
-    # from itertools import zip_longest
-    # def write2csv(csv_path, data):
-    #     max_length = max(len(lst) for lst in data)
-    #     transposed_data = list(zip_longest(*data, fillvalue=None))
-    #
-    #     with open(csv_path, 'w', newline='') as csvfile:
-    #         writer = csv.writer(csvfile)
-    #         # 写入数据
-    #         for i, row in enumerate(transposed_data, start=1):
-    #             writer.writerow([i] + list(row[:max_length]))
-    #
-    # import os
-    # from tqdm import tqdm
-    # import biotite.structure.io as strucio
-    #
-    # structure_dir = [r"D:\subject\active\1-qProtein\data\enzymes\GH8\2_StrucMapping\positive",
-    #                  r"D:\subject\active\1-qProtein\data\enzymes\GH8\2_StrucMapping\negative"]
-    # csv_path = r"D:\subject\active\1-qProtein\data\enzymes\GH8\3_StrucAnalyzing\dsbond.csv"
-    #
-    # all_ret = []
-    # for sdir in structure_dir:
-    #     one_ret = []
-    #     for struct in tqdm(os.listdir(sdir)):
-    #         structure_path = os.path.join(sdir, struct)
-    #         structure = strucio.load_structure(structure_path)
-    #         seq_len = max(structure.res_id)
-    #         out = analyze(structure)
-    #         one_ret.append(len(out)/seq_len)
-    #     all_ret.append(one_ret)
-    # write2csv(csv_path=csv_path, data=all_ret)
-    # from scipy.stats import ranksums
-    # statistic, p_value = ranksums(all_ret[0], all_ret[1])
-    #
-    # # 输出结果
-    # print("T 统计值：", statistic)
-    # print("P 值：", p_value)
-    # print(np.mean(all_ret[0]), np.mean(all_ret[1]))
-    
-    
-    # dir_path = r"D:\subject\active\3-PETase\data\test"
-    # import biotite.structure.io as strucio
-    # import os
-    # for file in os.listdir(dir_path):
-    #     structure_path = os.path.join(dir_path, file)
-    #     print(file)
-    #     structure = strucio.load_structure(structure_path)
-    #     out = analyze(structure)
-    #     seq_len = max(structure.res_id)
-    #     print(len(out))
-    #     print()
+    return len(disulfide_bonds)/length
+
+
     

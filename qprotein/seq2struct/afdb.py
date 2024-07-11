@@ -51,8 +51,3 @@ def get_struct(uniprot_id):
 	else:
 		logger.info(f"Seq2Struct uniprot ID failed: {uniprot_id}")
 
-
-
-# if __name__ == '__main__':
-# 	structure_folder = r"D:\subject\active\1-qProtein\code\test\structure"
-# 	get_struct("A0A067XRW0", structure_folder)

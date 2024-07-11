@@ -27,10 +27,11 @@ logger = logger.setup_log(name=__name__)
 #### USER CONFIGURATION ####
 
 # Binary executable of US-align tool
-usalign_binary_path = r"/home/softengine/qprotein/USalign/USalign"
-# ESMFold prediction script
+usalign_binary_path = r"D:\subject\active\1-qProtein\tools\USalign.exe"
+
+# ESMFold prediction script. Needed if the --fasta is chosen.
 esm_script = r"/opt/app/esm-main/scripts/fold.py"
-# ESMFold directory, looking for checkpoints directory
+# ESMFold directory, looking for checkpoints directory. Needed if the --fasta is chosen.
 esm_dir = r"/opt/app/esm-main/"
 
 #### END OF USER CONFIGURATION ####
@@ -39,13 +40,11 @@ esm_dir = r"/opt/app/esm-main/"
 #### ARGUMENTS PARSER ####
 parser = argparse.ArgumentParser(description='qProtein for structures analysis')
 
-group1 = parser.add_mutually_exclusive_group(required=True)
-group1.add_argument('--fasta', required=False, help='Input fasta sequences')
-group1.add_argument('--id', required=False, help='Input uniprot ID list')
+parser.add_argument('--fasta', required=False, help='Input fasta sequences')
+parser.add_argument('--id', required=False, help='Input uniprot ID list')
 
 parser.add_argument('--dir', required=True, help='Working directory')
 
-parser.add_argument('--overall', action='store_true', required=False, default=False, help='Analysis mode=Overall')
 parser.add_argument('--local', action='store_true', required=False, default=False, help='Analysis mode=local')
 parser.add_argument('--template_name', required=False, help='Template model for local analysis')
 parser.add_argument('--template_active_res', required=False, help='Active residues of template model, i.e. 33,35,37,64')
@@ -164,10 +163,10 @@ def main():
 	pdb_list = [os.path.join(structure_folder, i) for i in os.listdir(structure_folder)]
 	feature_dict = calc_feature(pdb_list)
 	
-	if args.overall:
-		# Analyze overall feature
-		overall_feature_file = os.path.join(wd, "overall_feature.csv")
-		overall.save_feature(overall_feature_file, feature_dict)
+	
+	# Analyze overall feature
+	overall_feature_file = os.path.join(wd, "overall_feature.csv")
+	overall.save_feature(overall_feature_file, feature_dict)
 	
 	if args.local:
 		# Analyze local feature
