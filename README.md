@@ -65,6 +65,9 @@ python run_qprotein.py --dir test
 python run_qprotein.py --id test/id.txt --dir test --local --template_name P33557 --template_active_res 33,35,37,64,66,91,93,97,99,106,108,115,116,118,142,146,147,148,154,156,158,191,197,199,200 --dist1 12 --dist2 15
 ```
 
+## Citation
+qProtein: Exploring the physical features of protein thermostability based on structural proteomics
+
 ## Schematic diagram of interaction algorithm
 ![Interaction algorithm](https://github.com/bj600800/qProtein/blob/main/interaction_algorithm.png)
 
