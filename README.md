@@ -45,12 +45,12 @@ For Linux
 
 
 ## Run qProtein
-### Getting structures ###
+### Mode 1. Getting structures ###
 ```
 python run_qprotein.py --id test/id.txt --dir test
 ```
 
-### Using user-prepared structures for overall analysis ###
+### Mode 2. Using user-prepared structures for overall analysis ###
 **Notice:**
 PDB structures shoud be included in the directory named "structure" under the working directory "--dir". Here it refers to "test" fold.
 
@@ -60,7 +60,7 @@ So that qProtein will analyze the structures included in "structure/" fold, and 
 python run_qprotein.py --dir test
 ```
 
-### Local analysis ###
+### Mode 3. Local analysis ###
 ```
 python run_qprotein.py --id test/id.txt --dir test --local --template_name P33557 --template_active_res 33,35,37,64,66,91,93,97,99,106,108,115,116,118,142,146,147,148,154,156,158,191,197,199,200 --dist1 12 --dist2 15
 ```
