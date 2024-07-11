@@ -33,7 +33,7 @@ pip install biopython==1.83
 **Notice:**
 Modify config params in run_qprotein.py for your installation.
 
-For local structure analysis:
+For local structure analysis (for Win, usalign.exe; for Linux, USalign):
 [USalign](https://zhanggroup.org/US-align/bin/module/USalignLinux64.zip)
 
 For prediction module:
