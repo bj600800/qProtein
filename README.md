@@ -20,6 +20,7 @@ git clone https://github.com/bj600800/qProtein.git
 cd qProtein
 
 conda create -n qprotein python=3.9
+conda activate qprotein
 
 pip install bioitie==0.37.0 
 pip install pdb2pqr
