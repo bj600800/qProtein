@@ -50,9 +50,9 @@ For Linux
 python run_qprotein.py --id test/id.txt --dir test
 ```
 
-### Overall analysis ###
+### Using local structures for overall analysis ###
 ```
-python run_qprotein.py --id test/id.txt --dir test --overall
+python run_qprotein.py --dir test
 ```
 
 ### Local analysis ###
