@@ -45,7 +45,7 @@ For Linux
 
 
 ## Run qProtein
-### Get structures ###
+### Getting structures ###
 ```
 python run_qprotein.py --id test/id.txt --dir test
 ```
