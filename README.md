@@ -31,7 +31,7 @@ pip install biopython==1.83
 
 ## Additional requirements
 For local structure analysis:
-[USalign](https://zhanggroup.org/US-align/)
+[USalign](https://zhanggroup.org/US-align/bin/module/USalignLinux64.zip)
 
 For prediction module:
 [ESMFold](https://github.com/facebookresearch/esm)
