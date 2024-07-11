@@ -2,7 +2,7 @@
 
 **A platform for automated structural proteomics analysis.**
 
-## Online web
+## Online web-server
 https://qprotein.sdu.edu.cn
 
 ## Key features
