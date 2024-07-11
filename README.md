@@ -22,7 +22,7 @@ cd qProtein
 conda create -n qprotein python=3.9
 conda activate qprotein
 
-pip install bioitie==0.37.0 
+pip install biotite==0.37.0 
 pip install pdb2pqr
 pip install tqdm
 pip install numpy==1.23.5
