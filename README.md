@@ -1,3 +1,6 @@
+<h1 align="center">
+  <img src="logo-no-background.png" alt="Logo" width="200">
+</h1>
 # qProtein：Exploring physical interaction features of protein thermostability based on structural proteomics
 
 **A platform for automated structural proteomics analysis.**
