@@ -4,9 +4,6 @@
 
 **A platform for automated structural proteomics analysis.**
 
-## Online web-server
-https://qprotein.sdu.edu.cn
-
 ## Key features
 :sparkles: **Batch Processing**: Transform multiple protein sequences to structures.
 
@@ -69,6 +66,9 @@ python run_qprotein.py --id test/id.txt --dir test --local --template_name P3355
 
 ## Citation
 qProtein: Exploring the physical features of protein thermostability based on structural proteomics
+
+## Online web-server
+https://qprotein.sdu.edu.cn
 
 ## Schematic diagram of interaction algorithm
 ![Interaction algorithm](https://github.com/bj600800/qProtein/blob/main/interaction_algorithm.png)
