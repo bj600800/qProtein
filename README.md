@@ -61,7 +61,7 @@ python run_qprotein.py --dir test
 
 ### Mode 3. Local analysis ###
 **Notice:**
-Four params --template_name, --template_active_res --dist1, --dist2 should be defined by users depending on the task requirement. 
+Four params --template_name, --template_active_res --dist1, and --dist2 should be defined by users depending on the task requirement. 
 
 For further details, please refer to the paper.
 
