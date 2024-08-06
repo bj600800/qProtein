@@ -60,6 +60,11 @@ python run_qprotein.py --dir test
 ```
 
 ### Mode 3. Local analysis ###
+**Notice:**
+Four params --template_name, --template_active_res --dist1, --dist2 should be defined by users depending on the task requirement. 
+
+For further details, please refer to the paper.
+
 ```
 python run_qprotein.py --id test/id.txt --dir test --local --template_name P33557 --template_active_res 33,35,37,64,66,91,93,97,99,106,108,115,116,118,142,146,147,148,154,156,158,191,197,199,200 --dist1 12 --dist2 15
 ```
