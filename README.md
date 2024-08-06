@@ -71,5 +71,6 @@ qProtein: Exploring the physical features of protein thermostability based on st
 http://qprotein.sdu.edu.cn:8888
 
 ## Schematic diagram of interaction algorithm
-![Interaction algorithm](https://github.com/bj600800/qProtein/blob/main/interaction_algorithm.png)
+<img src="https://github.com/bj600800/qProtein/blob/main/interaction_algorithm.png" alt="algorithm" width="600" height="400">
+
 
