@@ -9,7 +9,7 @@
 
 :sparkles: **Interaction Analysis**: Compute four major types of physical interactions: hydrogen bonding, electrostatic interactions, hydrophobic clusters, and disulfide bond.
 
-:sparkles: **Overall and Local Structural Analysis**: Analyze local structural features within targeted regions of interest following multiple structure alignment.
+:sparkles: **Overall and Local Structural Analysis**: Analyze local structural features within targeted regions.
 
 ## Install qProtein
 
