@@ -71,10 +71,13 @@ For further details, please refer to the paper.
 python run_qprotein.py --id test/id.txt --dir test --local --template_name P33557 --template_active_res 33,35,37,64,66,91,93,97,99,106,108,115,116,118,142,146,147,148,154,156,158,191,197,199,200 --dist1 12 --dist2 15
 ```
 
+### Using ESMFold model for predicting protein structures ###
+python run_qprotein.py --fasta test/sequence.fasta --dir test --local --template_name P33557_seq --template_active_res 33,35,37,64,66,91,93,97,99,106,108,115,116,118,142,146,147,148,154,156,158,191,197,199,200 --dist1 12 --dist2 15
+
 ## Citation
 qProtein: Exploring the physical features of protein thermostability based on structural proteomics
 
-## Online web-server (for AFDB mode only)
+## Online web-server (for using Alphafold database only)
 http://qprotein.sdu.edu.cn:8888
 
 ## Schematic diagram of interaction algorithm
