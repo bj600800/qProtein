@@ -5,9 +5,11 @@
 **A platform for automated structural proteomics analysis.**
 
 ## Key features
+:sparkles: **Ingrated platform**: An automated workflow integrating a variety of bioinformatics tools and a deep learning model.
+
 :sparkles: **Batch Processing**: Transform multiple protein sequences to structures.
 
-:sparkles: **Interaction Analysis**: Compute four major types of physical interactions: hydrogen bonding, electrostatic interactions, hydrophobic clusters, and disulfide bond.
+:sparkles: **Interaction Analysis**: Compute four major types of physical interactions: hydrogen bonds, electrostatic interactions, hydrophobic clusters, and disulfide bonds.
 
 :sparkles: **Overall and Local Structural Analysis**: Analyze local structural features within targeted regions.
 
