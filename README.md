@@ -41,17 +41,17 @@ For Win
 For Linux
 [USalign](https://zhanggroup.org/US-align/bin/module/USalignLinux64.zip)
 
-### For prediction module ###
+### Configure ESMFold for prediction module ###
 [ESMFold](https://github.com/facebookresearch/esm)
 
 
 ## Run qProtein
-### Mode 1. Getting structures ###
+### Getting structures ###
 ```
 python run_qprotein.py --id test/id.txt --dir test
 ```
 
-### Mode 2. Using user-prepared structures for overall analysis ###
+### Using user-prepared structures for overall analysis ###
 **Notice:**
 PDB structures shoud be included in the directory named "structure" under the working directory "--dir". Here it refers to the "test" fold.
 
@@ -61,7 +61,7 @@ So that qProtein will analyze the structures included in "structure/" fold, and 
 python run_qprotein.py --dir test
 ```
 
-### Mode 3. Local analysis ###
+### Local analysis ###
 **Notice:**
 Four params --template_name, --template_active_res --dist1, and --dist2 should be defined by users depending on the task requirement. 
 
