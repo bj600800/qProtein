@@ -77,7 +77,7 @@ python run_qprotein.py --fasta test/sequence.fasta --dir test --local --template
 ## Citation
 qProtein: Exploring the physical features of protein thermostability based on structural proteomics
 
-## Online web-server (for using Alphafold database only)
+## Online web-server (for ID mode only with seq2struct)
 http://qprotein.sdu.edu.cn:8888
 
 ## Schematic diagram of interaction algorithm
