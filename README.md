@@ -2,7 +2,7 @@
   <img src="logo-no-background.png" alt="Logo" width="200">
 </h1>
 
-**A platform for automated structural proteomics analysis.**
+**Exploring Physical Features of Protein Thermostability Based on Structural Proteomics**
 
 ## Key features
 :sparkles: **Ingrated platform**: An automated workflow integrating a variety of bioinformatics tools and a deep learning model.
