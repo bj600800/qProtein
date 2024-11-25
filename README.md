@@ -2,7 +2,8 @@
   <img src="logo-no-background.png" alt="Logo" width="200">
 </h1>
 
-**Exploring Physical Features of Protein Thermostability Based on Structural Proteomics**
+**Exploring Physical Features of Protein Thermostability Based on Structural Proteomics** [![DOI](https://zenodo.org/badge/608680173.svg)](https://doi.org/10.5281/zenodo.14214907)
+
 
 ## Key features
 :sparkles: **Ingrated platform**: An automated workflow integrating a variety of bioinformatics tools and a deep learning model.
