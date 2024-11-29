@@ -23,35 +23,32 @@ from qprotein.utilities import logger
 
 logger = logger.setup_log(name=__name__)
 
-
-#### USER CONFIGURATION ####
-
-# Binary executable of US-align tool
-usalign_binary_path = r"D:\subject\active\1-qProtein\tools\USalign.exe"
-
-# ESMFold prediction script. Needed if the --fasta is chosen.
-esm_script = r"/opt/app/esm-main/scripts/fold.py"
-# ESMFold directory, looking for checkpoints directory. Needed if the --fasta is chosen.
-esm_dir = r"/opt/app/esm-main/"
-
-#### END OF USER CONFIGURATION ####
-
-
 #### ARGUMENTS PARSER ####
 parser = argparse.ArgumentParser(description='qProtein for structures analysis')
 
 parser.add_argument('--fasta', required=False, help='Input fasta sequences')
 parser.add_argument('--id', required=False, help='Input uniprot ID list')
 
-parser.add_argument('--dir', required=True, help='Working directory')
+parser.add_argument('--work_dir', required=True, help='Working directory')
+parser.add_argument('--pre_pdb', required=False, help='Directory of prepared pdbs')
 
 parser.add_argument('--local', action='store_true', required=False, default=False, help='Analysis mode=local')
 parser.add_argument('--template_name', required=False, help='Template model for local analysis')
 parser.add_argument('--template_active_res', required=False, help='Active residues of template model, i.e. 33,35,37,64')
-parser.add_argument('--dist1', required=False, default=12, help='Active region distance')
-parser.add_argument('--dist2', required=False, default=15, help='Intermediate region distance')
+parser.add_argument('--dist1', required=False, help='Active region distance')
+parser.add_argument('--dist2', required=False, help='Intermediate region distance')
 
 args = parser.parse_args()
+
+#### USER CONFIGURATION ####
+# Binary executable of US-align tool
+usalign_binary_path = r""
+# assert os.path.exists(usalign_binary_path)
+# ESMFold prediction script. Needed if the --fasta is chosen.
+esm_script = r"/opt/app/esm-main/scripts/fold.py"
+# ESMFold directory, looking for checkpoints directory. Needed if the --fasta is chosen.
+esm_dir = r"/opt/app/esm-main/"
+#### END OF USER CONFIGURATION ####
 
 if args.fasta:
 	logger.info(f"Predicting structures by ESMFold")
@@ -60,7 +57,8 @@ elif args.id:
 	
 if args.local:
 	if not (args.template_name and args.template_active_res and args.dist1 and args.dist2):
-		parser.error("When using local analysis mode, you must specify --template_name")
+		parser.error("When using local analysis mode, you must specify "
+					 "--template_name, --template_active_res, --dist1, --dist2")
 		parser.print_help()
 		exit(1)
 #### END OF ARGUMENTS PARSER ####
@@ -124,12 +122,12 @@ def calc_feature(pdb_list):
 
 def align_structure(structure_folder):
 	filenames = os.listdir(structure_folder)
-	name_txt = os.path.join(args.dir, 'name.txt')
+	name_txt = os.path.join(args.work_dir, 'name.txt')
 	with open(name_txt, 'w') as nf:
 		for file in filenames:
 			nf.write(file+'\n')
 	align_output_file = os.path.join(os.path.dirname(structure_folder), "usalign_out.fasta")
-	
+
 	usalign_cmd = [usalign_binary_path, "-dir", structure_folder, name_txt, "-suffix", ".pdb",
 	               "-mm", "4"]
 	result = subprocess.run(usalign_cmd, check=True, stdout=subprocess.PIPE)
@@ -142,12 +140,12 @@ def align_structure(structure_folder):
 def main():
 	t1 = time.time()
 	# wd = r"D:\subject\active\1-qProtein\code\test"
-	wd = args.dir
+	wd = args.work_dir
 	structure_folder = os.path.join(wd, "structure")
 	if not os.path.exists(structure_folder):
 		os.mkdir(structure_folder)
 	# structure_folder = r"D:\subject\active\1-qProtein\code\test\structure"
-	
+
 	if args.fasta:
 		# ESMFOLD prediction
 		fasta_file = args.fasta
@@ -158,7 +156,11 @@ def main():
 		id_file = args.id
 		id_list = get_id(id_file)
 		crawl_struct(id_list, structure_folder)
-	
+
+	# Using user prepared structures.
+	if args.pre_pdb:
+		structure_folder = args.pre_pdb
+
 	# Calculate feature
 	pdb_list = [os.path.join(structure_folder, i) for i in os.listdir(structure_folder)]
 	feature_dict = calc_feature(pdb_list)
@@ -167,7 +169,7 @@ def main():
 	# Analyze overall feature
 	overall_feature_file = os.path.join(wd, "overall_feature.csv")
 	overall.save_feature(overall_feature_file, feature_dict)
-	
+
 	if args.local:
 		# Analyze local feature
 		hydrophobic_feature = {protein_id: info['hydrophobic']["cluster"] for protein_id, info in feature_dict.items()}
@@ -175,7 +177,7 @@ def main():
 		## User define
 		template_active_architecture = args.template_active_res.split(",")
 		# template_active_architecture = "33,35,37,64,66,91,93,97,99,106,108,115,116,118,142,146,147,148,154,156,158,191,197,199,200"
-		
+
 		## calculate alignment USING align_structure function
 		alignment_file = align_structure(structure_folder)
 		# alignment_file = r"D:\subject\active\1-qProtein\code\test\usalign_test.fasta"
@@ -185,7 +187,7 @@ def main():
 		          template_active_architecture, hydrophobic_feature,
 		          structure_folder, local_hydrophobic_file, local_aa_file,
 		          active_edge_dist=int(args.dist1), intermediate_edge_dist=int(args.dist2))
-	
+
 	t2 = time.time()
 	using_time = t2-t1
 	logger.info(f"qProtein analysis finished in {int(using_time)} seconds!")
