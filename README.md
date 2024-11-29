@@ -51,17 +51,13 @@ For Linux
 ## Run qProtein
 ### Getting structures ###
 ```
-python run_qprotein.py --id test/id.txt --dir test
+python run_qprotein.py --id test/id.txt --work_dir test
 ```
 
 ### Using user-prepared structures for overall analysis ###
-**Notice:**
-PDB structures shoud be included in the directory named "structure" under the working directory "--dir". Here it refers to the "test" fold.
-
-So that qProtein will analyze the structures included in "structure/" fold, and output the results in the working directory "test/" fold.
 
 ```
-python run_qprotein.py --dir test
+python run_qprotein.py --work_dir test --pre_pdb test\pdb
 ```
 
 ### Local analysis ###
@@ -71,11 +67,11 @@ Four params --template_name, --template_active_res --dist1, and --dist2 should b
 For further details, please refer to the paper.
 
 ```
-python run_qprotein.py --id test/id.txt --dir test --local --template_name P33557 --template_active_res 33,35,37,64,66,91,93,97,99,106,108,115,116,118,142,146,147,148,154,156,158,191,197,199,200 --dist1 12 --dist2 15
+python run_qprotein.py --id test/id.txt --work_dir test --local --template_name P33557 --template_active_res 33,35,37,64,66,91,93,97,99,106,108,115,116,118,142,146,147,148,154,156,158,191,197,199,200 --dist1 12 --dist2 15
 ```
 
 ### Using ESMFold model for predicting protein structures ###
-python run_qprotein.py --fasta test/sequence.fasta --dir test --local --template_name P33557_seq --template_active_res 33,35,37,64,66,91,93,97,99,106,108,115,116,118,142,146,147,148,154,156,158,191,197,199,200 --dist1 12 --dist2 15
+python run_qprotein.py --fasta test/sequence.fasta --work_dir test --local --template_name P33557_seq --template_active_res 33,35,37,64,66,91,93,97,99,106,108,115,116,118,142,146,147,148,154,156,158,191,197,199,200 --dist1 12 --dist2 15
 
 ## Citation
 qProtein: Exploring the physical features of protein thermostability based on structural proteomics
