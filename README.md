@@ -5,7 +5,7 @@
 **Exploring Physical Features of Protein Thermostability Based on Structural Proteomics** 
 
 [![DOI](https://zenodo.org/badge/608680173.svg)](https://doi.org/10.5281/zenodo.14214907)
-[![DOI](https://pubs.acs.org/doi/full/10.1021/acs.jcim.4c01303)](https://pubs.acs.org/doi/full/10.1021/acs.jcim.4c01303)
+[![DOI](https://pubs.acs.org/doi/full/10.1021/acs.jcim.4c01303)](doi:10.1021/acs.jcim.4c01303)
 
 
 ## Key features
