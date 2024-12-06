@@ -18,7 +18,7 @@
 
 ## Install qProtein
 
-```Python
+```Bash
 git clone https://github.com/bj600800/qProtein.git
 
 cd qProtein
