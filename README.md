@@ -74,7 +74,7 @@ python run_qprotein.py --id test/id.txt --work_dir test --local --template_name 
 python run_qprotein.py --fasta test/sequence.fasta --work_dir test --local --template_name P33557_seq --template_active_res 33,35,37,64,66,91,93,97,99,106,108,115,116,118,142,146,147,148,154,156,158,191,197,199,200 --dist1 12 --dist2 15
 
 ## Citation
-```LaTex
+```Python
 @article{dou2024qprotein,
   title={qProtein: Exploring Physical Features of Protein Thermostability Based on Structural Proteomics},
   author={Dou, Zhixin and He, Jiaxin and Han, Chao and Wu, Xiuyun and Wan, Lin and Yang, Jian and Zheng, Yanwei and Gong, Bin and Wang, Lushan},
