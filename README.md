@@ -75,7 +75,7 @@ python run_qprotein.py --fasta test/sequence.fasta --work_dir test --local --tem
 
 ## Citation
 ```
-<span style="color:red">@article</span><span style="color:purple">{dou2024qprotein,</span>
+<font color="red">@article</font> <font color="purple">{dou2024qprotein,</font>  
   title={qProtein: Exploring Physical Features of Protein Thermostability Based on Structural Proteomics},
   author={Dou, Zhixin and He, Jiaxin and Han, Chao and Wu, Xiuyun and Wan, Lin and Yang, Jian and Zheng, Yanwei and Gong, Bin and Wang, Lushan},
   journal={Journal of Chemical Information and Modeling},
