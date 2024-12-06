@@ -5,7 +5,7 @@
 **qProtein: Exploring Physical Features of Protein Thermostability Based on Structural Proteomics** 
 
 [![Static Badge](https://img.shields.io/badge/ACS_JCIM-10.1021%2Facs.jcim.4c01303-red)](https://pubs.acs.org/doi/full/10.1021/acs.jcim.4c01303)
-[![Doi](https://zenodo.org/badge/608680173.svg)](https://doi.org/10.5281/zenodo.14214907)
+[![DOI](https://zenodo.org/badge/608680173.svg)](https://doi.org/10.5281/zenodo.14214907)
 
 
 
