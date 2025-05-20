@@ -64,8 +64,9 @@ python run_qprotein.py --work_dir test --pre_pdb test\pdb
 
 ### Local analysis ###
 **Notice:**
-Four params --template_name, --template_active_res --dist1, and --dist2 should be defined by users depending on the task requirement. 
+1. Four params --template_name, --template_active_res --dist1, and --dist2 should be defined by users depending on the task requirement. 
 
+2. The number of the template pdb structure should start with 1. May be a alteration of the residue id required.
 For further details, please refer to the paper.
 
 ```Bash
