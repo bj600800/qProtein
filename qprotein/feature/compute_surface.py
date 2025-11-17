@@ -19,7 +19,7 @@ from Bio.PDB.DSSP import DSSP
 from Bio.PDB.PDBExceptions import PDBConstructionWarning
 from tqdm import tqdm
 
-from qpacking.common import logger
+from qprotein.utilities import logger
 
 logger = logger.setup_log(name=__name__)
 warnings.simplefilter('ignore', PDBConstructionWarning)

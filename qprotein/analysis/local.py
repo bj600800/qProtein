@@ -154,3 +154,6 @@ def run(template_name, alignment_fasta, template_active_architecture, clusters, 
 			aa_region_dict[structure_name] = aa_dict
 	save_hydrophobic_feature(hydrophobic_csv_path, hydrophobic_region_dict)
 	save_aa_feature(aa_csv_path, aa_region_dict)
+
+if __name__ == '__main__':
+	template_name = r"A5H0S3"

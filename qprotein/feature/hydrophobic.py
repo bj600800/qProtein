@@ -10,7 +10,6 @@
 import warnings
 
 import biotite.structure as struc
-import biotite.structure.io as strucio
 import networkx as nx
 import numpy as np
 from biotite.structure.info import vdw_radius_single

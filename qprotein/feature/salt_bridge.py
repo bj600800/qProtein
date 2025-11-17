@@ -9,7 +9,6 @@
 """
 import numpy as np
 import biotite.structure as struc
-import biotite.structure.io as strucio
 
 def detect_disulfide_bonds(structure, distance=4):
     pos_label = {

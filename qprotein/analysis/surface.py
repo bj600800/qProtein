@@ -12,8 +12,8 @@ import configparser
 from openpyxl import Workbook
 from openpyxl.styles import Alignment
 
-from qpacking.physical_chemistry import compute_surface
-from qpacking.common import logger
+from qprotein.feature import compute_surface
+from qprotein.utilities import logger
 
 logger = logger.setup_log(name=__name__)
 
@@ -33,7 +33,7 @@ def save2xlsx(data, xlsx_file):
     statistics_sheet['D1'] = 'Net charges'
 
     for row_index, row_perc in enumerate(data, start=2):
-        statistics_sheet.cell(row=row_index, column=1, value=row_perc[0] + '_chainA')
+        statistics_sheet.cell(row=row_index, column=1, value=row_perc[0])
         statistics_sheet.cell(row=row_index, column=2, value=row_perc[2]['negative'])
         statistics_sheet.cell(row=row_index, column=3, value=row_perc[2]['positive'])
         statistics_sheet.cell(row=row_index, column=4, value=row_perc[3])
@@ -82,3 +82,8 @@ def run(structure_dir, xlsx_file, config_file):
     data = compute_surface.run(structure_dir, dssp_bin=dssp_bin, pdb2pqr_bin=pdb2pqr_bin, apbs_bin=apbs_bin)
     save2xlsx(data, xlsx_file)
 
+if __name__ == '__main__':
+    structure_dir = r"/Users/douzhixin/Developer/qProtein/qProtein-main/test/structure"
+    xlsx_file = r"/Users/douzhixin/Developer/qProtein/qProtein-main/test/surface.xlsx"
+    config_file = r"/Users/douzhixin/Developer/qProtein/qProtein-main/config.ini"
+    run(structure_dir, xlsx_file, config_file)
