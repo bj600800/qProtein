@@ -68,17 +68,17 @@ python run_qprotein.py --mode overall --work_dir test --pre_pdb pdb_dir
 python run_qprotein.py --mode local --work_dir test --pre_pdb pdb_dir --template_name P33557 --template_active_res 33,35,37,64,66,91,93,97,99,106,108,115,116,118,142,146,147,148,154,156,158,191,197,199,200 --dist1 12 --dist2 15
 ```
 
-### visual analysis ###
+### Visual analysis ###
 ```Bash
 python run_qprotein.py --mode visual --work_dir test --pre_pdb pdb_dir --pml
 ```
 
-### surface analysis ###
+### Surface analysis ###
 ```Bash
 python run_qprotein.py --mode surface --work_dir test --pre_pdb pdb_dir --config_file config.ini
 ```
 
-### function landscape analysis ###
+### Function landscape analysis ###
 ```Bash
 python run_qprotein.py --mode landscape --work_dir test --pre_pdb pdb_dir --label_file abs_label_txt --template_name P33557 --positions 141,142,143,144 --label_pos_thresold 50 --config_file config.ini
 ```
