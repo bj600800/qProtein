@@ -18,6 +18,8 @@
 
 :sparkles: **Overall and Local Structural Analysis**: Analyze local structural features within targeted regions.
 
+:sparkles: **The useful 6 tools**: Fetch, Overall, Local, Visual, Surface, Landscape 
+
 ## Install qProtein
 
 ```Bash
