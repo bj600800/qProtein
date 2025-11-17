@@ -10,6 +10,7 @@
 import configparser
 import os
 import tempfile
+from cProfile import label
 from typing import Dict, Optional
 
 import matplotlib.patches as patches
@@ -17,8 +18,8 @@ import matplotlib.pyplot as plt
 from weblogo import LogoData, LogoOptions, LogoFormat, eps_formatter, read_seq_data, ColorScheme
 from weblogo.color import Color
 
-from qpacking.evolutionary_analysis import function_landscape
-from qpacking.common import logger
+from qprotein.evolutionary_analysis import function_landscape
+from qprotein.utilities import logger
 
 logger = logger.setup_log(name=__name__)
 
@@ -212,7 +213,8 @@ def plot_weblogo(align_seq_df, input_pos_list, eps_path):
     os.remove(temp_file_path)
 
 
-def run(label_file, pdb_dir, template_name, input_pos_list, output_xlsx, label_pos_threshold, config_file):
+def run(label_file, pdb_dir, template_name, input_pos_list,
+        output_xlsx, label_pos_threshold, config_file):
     #### CONFIGURATION PARSER ####
     config = configparser.ConfigParser()
     config.read(config_file)
@@ -235,3 +237,13 @@ def run(label_file, pdb_dir, template_name, input_pos_list, output_xlsx, label_p
 
     plot_weblogo(aligned_seq_df, input_pos_list, eps_path)
     logger.info("Weblogo plot in vector format (eps) successfully saved to {}".format(eps_path))
+
+if __name__ == '__main__':
+    label_file = r"/Users/douzhixin/Developer/qProtein/qProtein-main/test/label.txt"
+    pdb_dir = r"/Users/douzhixin/Developer/qProtein/qProtein-main/test/structure"
+    template_name = "A5H0S3.pdb"
+    input_pos_list = "100,101,111"
+    output_xlsx = r"/Users/douzhixin/Developer/qProtein/qProtein-main/test/fitness.xlsx"
+    label_pos_thres = 50
+    config_file = r"/Users/douzhixin/Developer/qProtein/qProtein-main/config.ini"
+    run(label_file, pdb_dir, template_name, input_pos_list,output_xlsx, label_pos_thres, config_file)

@@ -19,7 +19,7 @@ import biotite.structure as struc
 import biotite.structure.io as strucio
 import pandas as pd
 
-from qpacking.common import logger
+from qprotein.utilities import logger
 
 logger = logger.setup_log(name=__name__)
 
