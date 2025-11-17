@@ -42,7 +42,7 @@ args = parser.parse_args()
 
 #### USER CONFIGURATION ####
 # Binary executable of US-align tool
-usalign_binary_path = r""
+usalign_binary_path = r"usalign"
 # assert os.path.exists(usalign_binary_path)
 # ESMFold prediction script. Needed if the --fasta is chosen.
 esm_script = r"/opt/app/esm-main/scripts/fold.py"

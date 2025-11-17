@@ -77,7 +77,7 @@ def calculate_weighted_sum_of_clusters(G):
         if len(component) > 1:
             component_subgraph = G.subgraph(component)
             nodes = component_subgraph.nodes()
-            
+
             node_labels = nx.get_node_attributes(G, 'res_name')
             res_names = [node_labels[node] for node in nodes ]
 

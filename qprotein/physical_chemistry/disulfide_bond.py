@@ -2,19 +2,22 @@
 # # ------------------------------------------------------------------------------
 # # Author:    Dou Zhixin
 # # Email:     bj600800@gmail.com
-# # DATE:      2023/07/11
+# # DATE:      2024/11/27
 #
 # # Description: disulfide bond calculation and return the frequency of disulfide bonds.
 # Original code source by Sphinx-Gallery: https://www.biotite-python.org/examples/gallery/structure/disulfide_bonds.html
 # # ------------------------------------------------------------------------------
 # """
-# import numpy as np
 # import biotite.structure as struc
+# import numpy as np
 #
 #
-# def analyze(structure, distance=2.05, distance_tol=0.05, dihedral=90, dihedral_tol=15):
+# def run(structure, distance=2.05, distance_tol=3, dihedral=90, dihedral_tol=15):
+#     """
+#     largest distance for the abnormal ones
+#     cite: https://doi.org/10.1093/protein/13.10.679
+#     """
 #     disulfide_bonds = []
-#     length = len(set(structure.res_id))
 #     sulfide_mask = (structure.res_name == "CYS") & \
 #                    (structure.atom_name == "SG")
 #     cell_list = struc.CellList(
@@ -46,13 +49,40 @@
 #             bond_dihed = np.abs(np.rad2deg(struc.dihedral(cb1, sg1, sg2, cb2)))
 #             if (distance - distance_tol < bond_dist < distance + distance_tol and
 #                     dihedral - dihedral_tol < bond_dihed < dihedral + dihedral_tol):
-#                 bond_tuple = tuple(sorted((sulfide_i, sulfide_j)))
+#                 bond_tuple = {(int(sulfide_i) + 1, int(structure[sulfide_i].res_id)),
+#                               (int(sulfide_j) + 1, int(structure[sulfide_j].res_id))}
 #                 if bond_tuple not in disulfide_bonds:
+#
 #                     disulfide_bonds.append(bond_tuple)
-#     return len(disulfide_bonds)/length
+#     return disulfide_bonds
 #
 #
+# if __name__ == '__main__':
+#     import os
+#     import biotite.structure.io as strucio
+#     structure_path = r"/Users/douzhixin/Developer/qProtein2/Data/pdb/1yna.pdb"
+#     stack_h = strucio.load_structure(structure_path)
+#     ret = run(stack_h)
+#     print(ret)
+
+# ------------------------------------------------------------------------------
+# Author:      Dou Zhixin
+# Email:       bj600800@gmail.com
+# DATE:        2025/01/01
 #
+# Description:
+#   Unified disulfide bond detection module.
+#   Supports:
+#       (1) returning disulfide bond frequency (old version)
+#       (2) returning all disulfide bond pairs (new version)
+#
+# Original geometric criteria reference:
+#   Sphinx-Gallery (Biotite)
+#   https://www.biotite-python.org/examples/gallery/structure/disulfide_bonds.html
+#
+# Extended distance tolerance reference:
+#   https://doi.org/10.1093/protein/13.10.679
+# ------------------------------------------------------------------------------
 
 import numpy as np
 import biotite.structure as struc

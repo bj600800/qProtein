@@ -23,7 +23,7 @@ def detect_disulfide_bonds(structure, distance=4):
 		"LYS": ("NZ",),
 		"ARG": ("NH1", "NH2")
 		}
-	
+
 	neg_label = {
 		"ASP": ("OD1", "OD2"),
 		"GLU": ("OE1", "OE2")
@@ -54,3 +54,4 @@ def analyze(atom_array):
 	salt_bridges = detect_disulfide_bonds(structure=atom_array)
 	length = len(set(atom_array.res_id))
 	return len(salt_bridges)/length
+
