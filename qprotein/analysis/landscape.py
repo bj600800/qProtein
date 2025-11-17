@@ -22,7 +22,7 @@ from qpacking.common import logger
 
 logger = logger.setup_log(name=__name__)
 
-print()
+
 def plot_landscape(df, input_pos_list, template_name, svg_path):
     fig, ax = plt.subplots(figsize=(18, 14))
     df = df[input_pos_list]
