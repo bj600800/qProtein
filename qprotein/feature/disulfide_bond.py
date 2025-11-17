@@ -115,8 +115,8 @@ def run(
 
     # Return mode selector
     if return_mode == "frequency":
-        unique_res_ids = len(set(structure.res_id))
-        return len(disulfide_bonds) / unique_res_ids if unique_res_ids > 0 else 0.0
+        unique_res_ids_length = len(set(structure.res_id))
+        return len(disulfide_bonds) / unique_res_ids_length if unique_res_ids_length > 0 else 0.0, unique_res_ids_length
 
     elif return_mode == "pairs":
         return disulfide_bonds

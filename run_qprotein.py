@@ -2,194 +2,297 @@
 # ------------------------------------------------------------------------------
 # Author:    Dou Zhixin
 # Email:     bj600800@gmail.com
-# DATE:      2024/05/10
+# DATE:      2025/01/01
 
-# Description: Main script of qProtein
+# Description: qProtein run file
 # ------------------------------------------------------------------------------
 """
-import os.path
+import os
 import argparse
 import subprocess
 import time
-
 from tqdm import tqdm
 import biotite.structure.io as strucio
-from qprotein.seq2struct.sequence import get_sequence, get_id
+
+from qprotein.seq2struct.sequence import get_id
 from qprotein.seq2struct.afdb import get_struct
 from qprotein.seq2struct import esmfold
 from qprotein.feature import hydrophobic, hbond, salt_bridge, disulfide_bond
 from qprotein.analysis import overall, local
 from qprotein.utilities import logger
 
+from qprotein.analysis import internal, surface, landscape
 logger = logger.setup_log(name=__name__)
 
-#### ARGUMENTS PARSER ####
-parser = argparse.ArgumentParser(description='qProtein for structures analysis')
-
-parser.add_argument('--fasta', required=False, help='Input fasta sequences')
-parser.add_argument('--id', required=False, help='Input uniprot ID list')
-
-parser.add_argument('--work_dir', required=True, help='Working directory')
-parser.add_argument('--pre_pdb', required=False, help='Directory of prepared pdbs')
-
-parser.add_argument('--local', action='store_true', required=False, default=False, help='Analysis mode=local')
-parser.add_argument('--template_name', required=False, help='Template model for local analysis')
-parser.add_argument('--template_active_res', required=False, help='Active residues of template model, i.e. 33,35,37,64')
-parser.add_argument('--dist1', required=False, help='Active region distance')
-parser.add_argument('--dist2', required=False, help='Intermediate region distance')
-
-args = parser.parse_args()
-
-#### USER CONFIGURATION ####
-# Binary executable of US-align tool
-usalign_binary_path = r"usalign"
-# assert os.path.exists(usalign_binary_path)
-# ESMFold prediction script. Needed if the --fasta is chosen.
-esm_script = r"/opt/app/esm-main/scripts/fold.py"
-# ESMFold directory, looking for checkpoints directory. Needed if the --fasta is chosen.
-esm_dir = r"/opt/app/esm-main/"
-#### END OF USER CONFIGURATION ####
-
-if args.fasta:
-	logger.info(f"Predicting structures by ESMFold")
-elif args.id:
-	logger.info(f"Crawl structures from AlphaFold structure database")
-	
-if args.local:
-	if not (args.template_name and args.template_active_res and args.dist1 and args.dist2):
-		parser.error("When using local analysis mode, you must specify "
-					 "--template_name, --template_active_res, --dist1, --dist2")
-		parser.print_help()
-		exit(1)
-#### END OF ARGUMENTS PARSER ####
-
-
-def sequences(fasta_file):
-	return get_sequence(fasta_file)
-
-def uniprot_ids(id_file):
-	return get_id(id_file)
-
 def crawl_struct(id_list, structure_folder):
-	def search_exist_struct(structure_folder):
-		exist_structure = [file for file in os.listdir(structure_folder)
-		                   if os.path.isfile(os.path.join(structure_folder, file))
-		                   and os.path.getsize(os.path.join(structure_folder, file)) > 0]
-		return [os.path.splitext(item)[0] for item in exist_structure]
-	
-	id_list = list(set(id_list) - set(search_exist_struct(structure_folder)))
-	if id_list:
-		for uniprot_id in tqdm(id_list):
-			pdb_string = get_struct(uniprot_id)
-			if pdb_string:
-				save_path = os.path.join(structure_folder, uniprot_id + ".pdb")
-				with open(save_path, "w") as f:
-					f.write(pdb_string)
-			
-	logger.info(f"Crawled structures: {len(os.listdir(structure_folder))}")
+    """Download AFDB structures unless already existing."""
+    def search_exist_struct(structure_folder):
+        exists = [file for file in os.listdir(structure_folder)
+                  if os.path.isfile(os.path.join(structure_folder, file))
+                  and os.path.getsize(os.path.join(structure_folder, file)) > 0]
+        return [os.path.splitext(item)[0] for item in exists]
 
-def calc_hydrophobic(pdb_file):
-	structure = strucio.load_structure(pdb_file)
-	return hydrophobic.analyze(atom_array=structure)
+    id_list = list(set(id_list) - set(search_exist_struct(structure_folder)))
+    if id_list:
+        for uniprot_id in tqdm(id_list):
+            pdb_string = get_struct(uniprot_id)
+            if pdb_string:
+                save_path = os.path.join(structure_folder, uniprot_id + ".pdb")
+                with open(save_path, "w") as f:
+                    f.write(pdb_string)
 
-def calc_hbond(pdb_file):
-	return hbond.analyze(structure_path=pdb_file)
-
-def calc_saltbridge(pdb_file):
-	structure = strucio.load_structure(pdb_file)
-	return salt_bridge.analyze(atom_array=structure)
-
-def calc_disulfide(pdb_file):
-	structure = strucio.load_structure(pdb_file)
-	return disulfide_bond.analyze(structure)
-	
-
-def calc_feature(pdb_list):
-	logger.info(f"Calculating features, please wait...")
-
-	feature_dict = {}
-	for pdb_file in tqdm(pdb_list):
-		feature = {}
-		pdb_name = os.path.basename(pdb_file).split(".")[0]
-		feature["hydrophobic"] = calc_hydrophobic(pdb_file)
-		feature["hbond"] = calc_hbond(pdb_file)
-		feature["saltbridge"] = calc_saltbridge(pdb_file)
-		feature["disulfide"] = calc_disulfide(pdb_file)
-		feature_dict[pdb_name] = feature
-
-	return feature_dict
+    logger.info(f"Crawled structures: {len(os.listdir(structure_folder))}")
 
 
-def align_structure(structure_folder):
-	filenames = os.listdir(structure_folder)
-	name_txt = os.path.join(args.work_dir, 'name.txt')
-	with open(name_txt, 'w') as nf:
-		for file in filenames:
-			nf.write(file+'\n')
-	align_output_file = os.path.join(os.path.dirname(structure_folder), "usalign_out.fasta")
+def calc_feature(pdb_list, return_mode):
+    logger.info(f"Calculating features, please wait...")
+    feature_dict = {}
+    for pdb_file in tqdm(pdb_list):
+        name = os.path.basename(pdb_file).split(".")[0]
+        structure = strucio.load_structure(pdb_file)
+        hbond_freq, length = hbond.run(pdb_file, return_mode)
+        salt_freq, length = salt_bridge.run(structure, return_mode)
+        disul_freq, length = disulfide_bond.run(structure, return_mode)
+        hydrophobic_ret = hydrophobic.run(structure)
+        feature_dict[name] = {
+            "hydrophobic": hydrophobic_ret,
+            "hbond": hbond_freq,
+            "saltbridge": salt_freq,
+            "disulfide": disul_freq,
+            "length": length
+        }
+    return feature_dict
 
-	usalign_cmd = [usalign_binary_path, "-dir", structure_folder, name_txt, "-suffix", ".pdb",
-	               "-mm", "4"]
-	result = subprocess.run(usalign_cmd, check=True, stdout=subprocess.PIPE)
-	with open(align_output_file, 'w', newline='') as f:
-		f.writelines(result.stdout.decode())
-	os.remove(name_txt)
-	return align_output_file
+def calc_local_hydrophobic(pdb_list):
+    hydro_dict = {}
+    for pdb_file in tqdm(pdb_list):
+        name = os.path.basename(pdb_file).split(".")[0]
+        structure = strucio.load_structure(pdb_file)
+        hydrophobic_ret = hydrophobic.run(structure)
+        hydro_dict[name] = hydrophobic_ret
+    return hydro_dict
 
-	
+def align_structure(structure_folder, usalign_binary="usalign"):
+    files = [file for file in os.listdir(structure_folder) if file.endswith(".pdb")]
+    name_txt = os.path.join(structure_folder, "name.txt")
+
+    with open(name_txt, "w") as f:
+        for fn in files:
+            f.write(fn + "\n")
+
+    out_file = os.path.join(os.path.dirname(structure_folder), "usalign_out.fasta")
+
+    cmd = [usalign_binary, "-dir", structure_folder, name_txt, "-suffix", ".pdb", "-mm", "4"]
+    result = subprocess.run(cmd, check=True, stdout=subprocess.PIPE)
+
+    with open(out_file, "w") as f:
+        f.write(result.stdout.decode())
+
+    os.remove(name_txt)
+    return out_file
+
 def main():
-	t1 = time.time()
-	# wd = r"D:\subject\active\1-qProtein\code\test"
-	wd = args.work_dir
-	structure_folder = os.path.join(wd, "structure")
-	if not os.path.exists(structure_folder):
-		os.mkdir(structure_folder)
-	# structure_folder = r"D:\subject\active\1-qProtein\code\test\structure"
+    modes = ["fetch", "overall", "local", "visual", "surface", "landscape"]
 
-	if args.fasta:
-		# ESMFOLD prediction
-		fasta_file = args.fasta
-		esmfold.run(fasta_file=fasta_file, structure_dir=structure_folder, esm_script=esm_script, esm_dir=esm_dir)
-	
-	if args.id:
-		# AFDB crawl
-		id_file = args.id
-		id_list = get_id(id_file)
-		crawl_struct(id_list, structure_folder)
+    parser = argparse.ArgumentParser(description="qProtein analysis kit")
+    parser.add_argument("--mode", type=str, choices=modes, required=True)
+    parser.add_argument("--fasta")
+    parser.add_argument("--id")
+    parser.add_argument("--pre_pdb")
+    parser.add_argument("--work_dir", required=True)
+    parser.add_argument("--template_name")
+    parser.add_argument("--dist1")
+    parser.add_argument("--dist2")
+    parser.add_argument("--config_file")
+    parser.add_argument("--pml", action="store_true")
+    parser.add_argument("--positions")
+    parser.add_argument("--label_file")
+    parser.add_argument("--label_pos_threshold")
 
-	# Using user prepared structures.
-	if args.pre_pdb:
-		structure_folder = args.pre_pdb
+    args = parser.parse_args()
 
-	# Calculate feature
-	pdb_list = [os.path.join(structure_folder, i) for i in os.listdir(structure_folder)]
-	feature_dict = calc_feature(pdb_list)
-	
-	
-	# Analyze overall feature
-	overall_feature_file = os.path.join(wd, "overall_feature.csv")
-	overall.save_feature(overall_feature_file, feature_dict)
+    # ------------------------------------------------------------------------------
+    # MODE — FETCH: Fetch pdbs from AFDB or ESMFold
+    # ------------------------------------------------------------------------------
+    if args.mode == "fetch":
+        structure_dir = os.path.join(args.work_dir, "structure")
+        os.makedirs(structure_dir, exist_ok=True)
 
-	if args.local:
-		# Analyze local feature
-		hydrophobic_feature = {protein_id: info['hydrophobic']["cluster"] for protein_id, info in feature_dict.items()}
-		template_name = args.template_name  # User define P33557
-		## User define
-		template_active_architecture = args.template_active_res.split(",")
-		# template_active_architecture = "33,35,37,64,66,91,93,97,99,106,108,115,116,118,142,146,147,148,154,156,158,191,197,199,200"
+        # 1. get structure
+        if args.fasta:
+            logger.info("Predicting structures by ESMFold")
+            esmfold.run(
+                fasta_file=args.fasta,
+                structure_dir=structure_dir,
+                esm_script="/opt/app/esm-main/scripts/fold.py",
+                esm_dir="/opt/app/esm-main/",
+            )
 
-		## calculate alignment USING align_structure function
-		alignment_file = align_structure(structure_folder)
-		# alignment_file = r"D:\subject\active\1-qProtein\code\test\usalign_test.fasta"
-		local_hydrophobic_file = os.path.join(wd, "local_hydrophobic_feature.csv")
-		local_aa_file = os.path.join(wd, "local_aa_feature.csv")
-		local.run(template_name, alignment_file,
-		          template_active_architecture, hydrophobic_feature,
-		          structure_folder, local_hydrophobic_file, local_aa_file,
-		          active_edge_dist=int(args.dist1), intermediate_edge_dist=int(args.dist2))
+        elif args.id:
+            logger.info("Crawling AlphaFold DB")
+            crawl_struct(get_id(args.id), structure_dir)
 
-	t2 = time.time()
-	using_time = t2-t1
-	logger.info(f"qProtein analysis finished in {int(using_time)} seconds!")
-	
-main()
+        else:
+            logger.error("fetch mode requires either --fasta or --id")
+            logger.error("Usage example: --mode fetch --fasta xxx.fasta  OR  --mode fetch --id id_list.txt")
+            return
+
+        logger.info(f"Structure fetch completed. Saved to: {structure_dir}")
+        return
+
+    # ------------------------------------------------------------------------------
+    # MODE — OVERALL: Calculate overall protein structure features
+    # ------------------------------------------------------------------------------
+    elif args.mode == "overall":
+        start = time.time()
+
+        if args.pre_pdb:
+            structure_dir = args.pre_pdb
+        else:
+            logger.error("overall mode requires --pre_pdb")
+            return
+
+        # 2. feature calculation — only if PDB files exist
+        pdb_list = [
+            os.path.join(structure_dir, fn)
+            for fn in os.listdir(structure_dir)
+            if fn.lower().endswith(".pdb")
+        ]
+
+        if len(pdb_list) == 0:
+            logger.error(f"No PDB structures found in: {structure_dir}")
+            logger.error("Please provide --pre_pdb or run --mode fetch to fetch pdbs")
+            return
+
+        # 2. feature calculation
+        return_mode = "frequency"
+        feature_dict = calc_feature(pdb_list, return_mode)
+
+        # 3. save overall
+        overall_file = os.path.join(args.work_dir, "overall_feature.csv")
+        overall.save_feature(overall_file, feature_dict)
+
+        logger.info(f"Overall analysis finished in {int(time.time() - start)} seconds.")
+        return
+
+    # ------------------------------------------------------------------------------
+    # MODE — LOCAL: Align local structure and analyze the features
+    # ------------------------------------------------------------------------------
+    elif args.mode == "local":
+        start = time.time()
+        if args.pre_pdb:
+            structure_dir = args.pre_pdb
+        else:
+            logger.error("overall mode requires --pre_pdb")
+            return
+
+        if not (args.template_name and args.positions and args.dist1 and args.dist2):
+            parser.error("Local mode requires --template_name --template_active_res --dist1 --dist2")
+
+        pdb_list = [
+            os.path.join(structure_dir, fn)
+            for fn in os.listdir(structure_dir)
+            if fn.lower().endswith(".pdb")
+        ]
+
+        if len(pdb_list) == 0:
+            logger.error(f"No PDB structures found in: {structure_dir}")
+            logger.error("Please provide --pre_pdb or run --mode fetch to fetch pdbs")
+            return
+
+        # 1. hydrophobic cluster calculation
+        hydrophobic_feature = calc_local_hydrophobic(pdb_list)
+
+        # 2. alignment
+        align_file = align_structure(structure_dir)
+
+        # 3. local output
+        local_hpd_file = os.path.join(args.work_dir, "local_hydrophobic_feature.csv")
+        local_aa_file = os.path.join(args.work_dir, "local_aa_feature.csv")
+
+        # 5. run local analysis
+        local.run(
+            args.template_name,
+            align_file,
+            args.positions.split(","),
+            hydrophobic_feature,
+            pdb_list,
+            local_hpd_file,
+            local_aa_file,
+            int(args.dist1),
+            int(args.dist2)
+        )
+
+        logger.info(f"Local analysis finished in {int(time.time() - start)} seconds.")
+        return
+
+    # ------------------------------------------------------------------------------
+    # MODE — VISUAL: Visualization of the four interactions in all pdbs
+    # ------------------------------------------------------------------------------
+    elif args.mode == "visual":
+        if args.pre_pdb:
+            structure_dir = args.pre_pdb
+        else:
+            logger.error("visual mode requires --pre_pdb")
+            return
+
+        internal.run(work_dir=args.work_dir, pdb_dir=structure_dir, pml=args.pml)
+
+    # ------------------------------------------------------------------------------
+    # MODE — surface: Surface charge analysis
+    # ------------------------------------------------------------------------------
+    elif args.mode == "surface":
+        if args.pre_pdb:
+            structure_dir = args.pre_pdb
+        else:
+            logger.error("visual mode requires --pre_pdb")
+            return
+
+        if not args.config_file:
+            logger.error("visual mode requires --config_file")
+            return
+
+        surface.run(work_dir=args.work_dir, structure_dir=structure_dir, config_file=args.config_file)
+
+    # ------------------------------------------------------------------------------
+    # MODE — landscape: function landscape visualization
+    # ------------------------------------------------------------------------------
+    elif args.mode == "landscape":
+        if args.pre_pdb:
+            structure_dir = args.pre_pdb
+        else:
+            logger.error("visual mode requires --pre_pdb")
+            return
+
+        if not args.label_file:
+            logger.error("visual mode requires --label_file")
+            return
+
+        if not args.template_name:
+            logger.error("visual mode requires --template_name")
+            return
+
+        if not args.positions:
+            logger.error("visual mode requires --positions")
+            return
+
+        if not args.label_pos_threshold:
+            logger.error("visual mode requires --label_pos_threshold")
+            return
+
+        if not args.config_file:
+            logger.error("visual mode requires --config_file")
+            return
+
+        landscape.run(
+            work_dir=args.work_dir,
+            pdb_dir=structure_dir,
+            label_file=args.label_file,
+            template_name=args.template_name,
+            input_pos_list=args.positions,
+            label_pos_threshold=args.label_pos_threshold,
+            config_file=args.config_file,
+        )
+
+if __name__ == "__main__":
+    main()

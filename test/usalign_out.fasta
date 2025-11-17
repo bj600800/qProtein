@@ -1,19 +1,19 @@
 
  ********************************************************************
- * US-align (Version 20240319)                                      *
+ * US-align (Version 20240730)                                      *
  * Universal Structure Alignment of Proteins and Nucleic Acids      *
  * Reference: C Zhang, M Shine, AM Pyle, Y Zhang. (2022) Nat Methods*
  *            C Zhang, AM Pyle (2022) iScience.                     *
  * Please email comments and suggestions to zhang@zhanggroup.org    *
  ********************************************************************
-Average aligned length= 180, RMSD=   1.91, Seq_ID=n_identical/n_aligned= 0.428
-Average TM-score= 0.79483 (normalized by length of shorter structure: L=211, d0=5.40)
-Average TM-score= 0.78772 (normalized by length of longer structure: L=213, d0=5.43)
-Average TM-score= 0.79126 (normalized by average L=212.00 and d0=5.42)
+Average aligned length= 172, RMSD=   1.59, Seq_ID=n_identical/n_aligned= 0.442
+Average TM-score= 0.90045 (normalized by length of shorter structure: L=179, d0=4.99)
+Average TM-score= 0.88171 (normalized by length of longer structure: L=183, d0=5.04)
+Average TM-score= 0.89098 (normalized by average L=181.00 and d0=5.01)
 In the following, seqID=n_identical/L.
 
->/A5H0S3.pdb:A	L=213	d0=5.43	seqID=0.362	TM-score=0.78772
-MFKFKKNFLVGLTAALMSISLFSA------------------------TASAASTDYWPNWTDGGGTVNAVNG-SGGNYSVNW--SNTGNFVVGKGWTKGSPSRTINYNAGVWAP-NGNGYLALYGWTRSPLIEYYVVDSWGTYRPT--GTYKGTVYSDGGTYDIYTTKRYNAPSIEGQHSTFTQYWSVRRSKRPTGNNAKITFSNHVKAWKSHGMNLGSIWSYQVLATEGYQSSGSSNVTVW-
->/P33557.pdb:A	L=211	d0=5.40	seqID=0.365	TM-score=0.79483	*
-------------------------MKVTAAFAGLLVTAFAAPVPEPVLVSRSAGINYVQNYNGN--LGDFTYDESAGTFSMYWEDGVSSDFVVGLGWTTGS-SNAITYSA-EYSASGSSSYLAVYGWVNYPQAEYYIVEDYGDYNPCSSATSLGTVYSDGSTYQVCTDTRTNEPSITG-TSTFTQYFSVRESTR-T--SGTVTVANHFNFWAQ-HGFGNSDFNYQVMAVEAWSGAGSASVTISS
+>/A5H0S3.pdb:A	L=183	d0=5.04	seqID=0.415	TM-score=0.88171
+TDYWPNWTDGGGTVNAVNG-SGGNYSVNW--SNTGNFVVGKGWTKGSPSRTINYNAGVWAP-NGNGYLALYGWTRSPLIEYYVVDSWGTYRPT--GTYKGTVYSDGGTYDIYTTKRYNAPSIEGQHSTFTQYWSVRRSKRPTGNNAKITFSNHVKAWKSHGMNLGSIWSYQVLATEGYQSSGSSNVTVW-
+>/P33557.pdb:A	L=179	d0=4.99	seqID=0.425	TM-score=0.90045	*
+--YVQNYNGN--LGDFTYDESAGTFSMYWEDGVSSDFVVGLGWTTGS-SNAITYSA-EYSASGSSSYLAVYGWVNYPQAEYYIVEDYGDYNPCSSATSLGTVYSDGSTYQVCTDTRTNEPSITG-TSTFTQYFSVRESTR-T--SGTVTVANHFNFWAQ-HGFGNSDFNYQVMAVEAWSGAGSASVTISS
 

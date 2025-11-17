@@ -39,12 +39,11 @@ def get_struct(uniprot_id):
 		"From": "bj600800@gmail.com"  # ALLWAYS TELLs WHO YOU ARE
 		}
 	
-	api_url = f"https://alphafold.ebi.ac.uk/files/AF-{uniprot_id}-F1-model_v4.pdb"
+	api_url = f"https://alphafold.ebi.ac.uk/files/AF-{uniprot_id}-F1-model_v6.pdb"
 	session = _start_request_session()
 	response = session.get(api_url, headers=headers)
 	if response.status_code == 200:
 		pdb_string = response.text
-		# 从PDB文件获取结构信息和bfactor信息
 		plddt = _get_bfactor(pdb_string)
 		if plddt > 70:
 			return pdb_string

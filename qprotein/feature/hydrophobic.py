@@ -82,7 +82,8 @@ def calculate_weighted_sum_of_clusters(G):
             node_labels = nx.get_node_attributes(G, 'res_name')
             res_names = [node_labels[node] for node in nodes]
             sum_area = '{:.2f}'.format(sum([residue_area[i] for i in res_names]))
-            cluster[f'cluster_{idx}'] = [sum_area, res_ids]
+            each_area = [residue_area[i] for i in res_names]
+            cluster[f'cluster_{idx}'] = [sum_area, res_ids, each_area]
     return cluster
 
 

@@ -51,34 +51,38 @@ For Linux
 
 
 ## Run qProtein
-### Getting structures ###
+### Fetch structures ###
 ```Bash
-python run_qprotein.py --id test/id.txt --work_dir test
+python run_qprotein.py --mode fetch --work_dir test --id test/id.txt 
 ```
 
-### Using user-prepared structures for overall analysis ###
-
+### Overall analysis ###
 ```Bash
-python run_qprotein.py --work_dir test --pre_pdb test\pdb
+python run_qprotein.py --mode overall --work_dir test --pre_pdb pdb_dir
 ```
 
 ### Local analysis ###
-**Notice:**
-Four params --template_name, --template_active_res --dist1, and --dist2 should be defined by users depending on the task requirement. 
-
-For further details, please refer to the paper.
-
 ```Bash
-python run_qprotein.py --id test/id.txt --work_dir test --local --template_name P33557 --template_active_res 33,35,37,64,66,91,93,97,99,106,108,115,116,118,142,146,147,148,154,156,158,191,197,199,200 --dist1 12 --dist2 15
+python run_qprotein.py --mode local --work_dir test --pre_pdb pdb_dir --template_name P33557 --template_active_res 33,35,37,64,66,91,93,97,99,106,108,115,116,118,142,146,147,148,154,156,158,191,197,199,200 --dist1 12 --dist2 15
 ```
 
-### Using ESMFold model for predicting protein structures ###
+### visual analysis ###
 ```Bash
-python run_qprotein.py --fasta test/sequence.fasta --work_dir test --local --template_name P33557_seq --template_active_res 33,35,37,64,66,91,93,97,99,106,108,115,116,118,142,146,147,148,154,156,158,191,197,199,200 --dist1 12 --dist2 15
+python run_qprotein.py --mode visual --work_dir test --pre_pdb pdb_dir --pml
+```
+
+### surface analysis ###
+```Bash
+python run_qprotein.py --mode surface --work_dir test --pre_pdb pdb_dir --config_file config.ini
+```
+
+### function landscape analysis ###
+```Bash
+python run_qprotein.py --mode landscape --work_dir test --pre_pdb pdb_dir --label_file abs_label_txt --template_name P33557 --positions 141,142,143,144 --label_pos_thresold 50 --config_file config.ini
 ```
 
 ## Citation
-```Python
+```
 @article{dou2024qprotein,
   title={qProtein: Exploring Physical Features of Protein Thermostability Based on Structural Proteomics},
   author={Dou, Zhixin and He, Jiaxin and Han, Chao and Wu, Xiuyun and Wan, Lin and Yang, Jian and Zheng, Yanwei and Gong, Bin and Wang, Lushan},

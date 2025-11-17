@@ -35,7 +35,7 @@ def read_labels(label_file):
     return label_dict
 
 
-def align_pdbs(pdb_dir, template_name, label_dict, usalign_bin):
+def align_pdbs(work_dir, pdb_dir, template_name, label_dict, usalign_bin):
     """
     Align all structures
 
@@ -52,11 +52,11 @@ def align_pdbs(pdb_dir, template_name, label_dict, usalign_bin):
     chain_list = [file for file in os.listdir(pdb_dir) if file.endswith(".pdb")]
     total_protein_num = len(chain_list)
 
-    chain_list_path = os.path.join(pdb_dir, 'chain_list')
+    chain_list_path = os.path.join(work_dir, 'chain_list')
     with open(chain_list_path, 'w') as f:
         f.writelines(f"{line.rstrip('.pdb')}\n" for line in chain_list if line != template_name)
 
-    template_pdb = os.path.join(pdb_dir, template_name)
+    template_pdb = os.path.join(pdb_dir, template_name+'.pdb')
     structure = strucio.load_structure(template_pdb)
     res_idx = list(set(structure[struc.filter_canonical_amino_acids(structure)].res_id.tolist()))
 
@@ -225,10 +225,10 @@ def calc_conservation(landscape, total_protein_num, res_idx, output_xlsx, label_
     return df
 
 
-def run(label_file, pdb_dir, template_name, output_xlsx, label_pos_thrshold, usalign_bin):
+def run(work_dir, label_file, pdb_dir, template_name, output_xlsx, label_pos_thrshold, usalign_bin):
     label_dict = read_labels(label_file)
     template_label = label_dict[template_name.rstrip('.pdb')]
-    align_res_list, total_protein_num, res_idx, align_seq_df = align_pdbs(pdb_dir, template_name, label_dict, usalign_bin)
+    align_res_list, total_protein_num, res_idx, align_seq_df = align_pdbs(work_dir, pdb_dir, template_name, label_dict, usalign_bin)
     landscape, aligned_seq_df = create_landscape(template_label, align_res_list, align_seq_df)
     df_landscape = calc_conservation(landscape, total_protein_num, res_idx, output_xlsx, label_pos_thrshold)
     return df_landscape, aligned_seq_df

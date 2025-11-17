@@ -97,10 +97,10 @@ def save2xlsx(data_dict, xlsx_file):
     logger.info('Results saved to directory: {}'.format(xlsx_file))
 
 
-def generate_pml_file(data_dict, pml_dir):
+def generate_pml_file(data_dict, pdb_dir, pml_dir):
     for name, four_interaction in data_dict.items():
         output_pml = os.path.join(pml_dir, f"{name}.pml")
-        pdb_path = os.path.join(os.path.dirname(pml_dir), name + '.pdb')
+        pdb_path = os.path.join(pdb_dir, name + '.pdb')
         with open(output_pml, 'w') as pml_file:
             pml_file.write(f"load {pdb_path}, {name}\n")
             pml_file.write("remove solvent\n")
@@ -138,19 +138,12 @@ def color_iter(idx):
     return colors[idx % len(colors)]
 
 
-def run(pdb_dir, xlsx_file, pml=False):
+def run(work_dir, pdb_dir, pml=False):
     data_dict = calc_interactions(pdb_dir)
+    xlsx_file = os.path.join(work_dir, "visual.xlsx")
     save2xlsx(data_dict, xlsx_file)
-
-    pml_dir = os.path.join(pdb_dir, "pml")
-    if not os.path.exists(pml_dir):
-        os.mkdir(pml_dir)
-
     if pml:
-        generate_pml_file(data_dict, pml_dir)
-
-
-if __name__ == '__main__':
-    pdb_dir = r"/Users/douzhixin/Developer/qProtein/qProtein-main/test/structure"
-    xlsx_file = r"/Users/douzhixin/Developer/qProtein/qProtein-main/test/test.xlsx"
-    run(pdb_dir, xlsx_file, pml=True)
+        pml_dir = os.path.join(work_dir, "pml")
+        if not os.path.exists(pml_dir):
+            os.mkdir(pml_dir)
+        generate_pml_file(data_dict, pdb_dir, pml_dir)

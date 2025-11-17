@@ -12,16 +12,11 @@ from Bio import SeqIO
 
 def get_seq_map(alignment):
     seq_dict = {}
-
-    # 遍历文件并过滤掉含有特定字符串的行
     with open(alignment, 'r') as file:
         lines = [line for line in file if "#Total CPU time is" not in line]
-
-    # 将过滤后的内容写回文件
     with open(alignment, 'w') as file:
         file.writelines(lines)
 
-    # 一次性读取并处理序列
     for record in SeqIO.parse(alignment, "fasta"):
         name = record.description.split(".pdb")[0].lstrip('/')
         seq_dict[name] = (str(record.seq), str(record.seq))

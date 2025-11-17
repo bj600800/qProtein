@@ -7,6 +7,7 @@
 # Description: Run code for surface calculation
 # ------------------------------------------------------------------------------
 """
+import os
 import configparser
 
 from openpyxl import Workbook
@@ -70,7 +71,7 @@ def save2xlsx(data, xlsx_file):
     logger.info('Results saved to {}'.format(xlsx_file))
 
 
-def run(structure_dir, xlsx_file, config_file):
+def run(work_dir, structure_dir, config_file):
     #### CONFIGURATION PARSER ####
     config = configparser.ConfigParser()
     config.read(config_file)
@@ -79,6 +80,7 @@ def run(structure_dir, xlsx_file, config_file):
     pdb2pqr_bin = config.get('binary', 'pdb2pqr')
     #### END OF CONFIGURATION PARSER ####
 
+    xlsx_file = os.path.join(work_dir, "surface.xlsx")
     data = compute_surface.run(structure_dir, dssp_bin=dssp_bin, pdb2pqr_bin=pdb2pqr_bin, apbs_bin=apbs_bin)
     save2xlsx(data, xlsx_file)
 

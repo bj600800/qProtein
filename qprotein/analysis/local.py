@@ -7,7 +7,7 @@
 # Description: analyze hydrophobic distribution in different local regions
 # ------------------------------------------------------------------------------
 """
-import os
+from pathlib import Path
 import csv
 import biotite.structure.io as strucio
 from biotite.structure import CellList
@@ -27,25 +27,46 @@ def get_region(structure, active_archi_res, active_edge_dist, intermediate_edge_
 		shell_coord.append(first_shell_coord)
 	center_coord = np.mean(shell_coord, axis=0)
 	cell_list = CellList(atom_array=structure, cell_size=3)  # size relates to the computational efficiency
-	active_region = list(structure[cell_list.get_atoms(center_coord, radius=active_edge_dist)].res_id)
-	inter_region = list(set(structure[cell_list.get_atoms(center_coord, radius=intermediate_edge_dist)].res_id) - set(active_region))
-	surface_region = list(set(structure.res_id)-set(active_region)-set(inter_region))
+	active_region = [int(i) for i in list(structure[cell_list.get_atoms(center_coord, radius=active_edge_dist)].res_id)]
+	inter_region = [int(i) for i in list(set(structure[cell_list.get_atoms(center_coord, radius=intermediate_edge_dist)].res_id) - set(active_region))]
+	surface_region = [int(i) for i in list(set(structure.res_id)-set(active_region)-set(inter_region))]
 	
 	return active_region, surface_region
 
+def extract_all_cluster_res(cluster_dict):
+	all_res = []
+	for cluster_info in cluster_dict.values():
+		_, residues = cluster_info  # ['326.85', [56,66]]
+		all_res.extend(residues)
+	return all_res
 
 def analyze_hydrophobic(cluster, active_region, surface_region):
 	active_region_hydrophobic = []
 	surface_region_hydrophobic = []
-	for out in cluster:
-		intersection_first_region_res = list(set(out.keys()) & set(active_region))
-		active_region_hydrophobic.append(sum([float(out[i]) for i in intersection_first_region_res]))
-		
-		intersection_second_region_res = list(set(out.keys()) & set(surface_region))
-		surface_region_hydrophobic.append(sum([float(out[i]) for i in intersection_second_region_res]))
+
+	for cluster_id, res_info in cluster.items():
+		intersection_first_region_res = list(set(res_info[1]) & set(active_region))
+		_first_area = []
+		for i in intersection_first_region_res:
+			res_list = res_info[1]
+			res_id = res_list.index(i)
+			res_area = res_info[2][res_id]
+			_first_area.append(res_area)
+		first_area_sum = sum(_first_area)
+		active_region_hydrophobic.append(first_area_sum)
+
+		intersection_second_region_res = list(set(res_info[1]) & set(surface_region))
+		_second_area = []
+		for i in intersection_second_region_res:
+			res_list = res_info[1]
+			res_id = res_list.index(i)
+			res_area = res_info[2][res_id]
+			_second_area.append(res_area)
+		second_area_sum = sum(_second_area)
+		surface_region_hydrophobic.append(second_area_sum)
+
 	normalized_active_region_hydrophobic = sum(active_region_hydrophobic) / len(active_region)
 	normalized_surface_region_hydrophobic = sum(surface_region_hydrophobic) / len(surface_region)
-	
 	return normalized_active_region_hydrophobic, normalized_surface_region_hydrophobic
 
 
@@ -127,19 +148,16 @@ def save_aa_feature(aa_csv_path, data):
 			                 str(region["overall"]["charge"]), str(region["overall"]["polar"]), str(region["overall"]["hydrophobic"])])
 	logger.info(f"Local amino acid feature saved: {aa_csv_path}")
 
-def run(template_name, alignment_fasta, template_active_architecture, clusters, structure_dir,
+def run(template_name, alignment_fasta, template_active_architecture, clusters, pdb_list,
         hydrophobic_csv_path, aa_csv_path, active_edge_dist, intermediate_edge_dist):
 	map_dict = align_map.run(alignment_fasta)
 	aligned_active_architecture = [map_dict[template_name][int(i)] for i in template_active_architecture]
-	
 	hydrophobic_region_dict = {}
 	aa_region_dict = {}
-	for file in os.listdir(structure_dir):
-		structure_path = os.path.join(structure_dir, file)
-		structure_name = os.path.splitext(file)[0]
+	for structure_path in pdb_list:
+		structure_name = Path(structure_path).stem
 		structure = strucio.load_structure(structure_path)
 		res_map = map_dict.get(structure_name)
-		
 		if res_map:
 			reversed_res_map = {v:k for k, v in res_map.items()}
 			active_archi_res = [reversed_res_map.get(i) for i in aligned_active_architecture]

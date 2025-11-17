@@ -10,7 +10,6 @@
 import configparser
 import os
 import tempfile
-from cProfile import label
 from typing import Dict, Optional
 
 import matplotlib.patches as patches
@@ -213,23 +212,23 @@ def plot_weblogo(align_seq_df, input_pos_list, eps_path):
     os.remove(temp_file_path)
 
 
-def run(label_file, pdb_dir, template_name, input_pos_list,
-        output_xlsx, label_pos_threshold, config_file):
+def run(work_dir, label_file, pdb_dir, template_name, input_pos_list,
+        label_pos_threshold, config_file):
     #### CONFIGURATION PARSER ####
     config = configparser.ConfigParser()
     config.read(config_file)
     usalign_bin = config.get('binary', 'usalign')
     #### END OF CONFIGURATION PARSER ####
-
+    output_xlsx = os.path.join(work_dir, 'landscape.xlsx')
     assert label_pos_threshold is float or int, "only int or float is accepted"
     input_pos_list = [int(i) for i in input_pos_list.split(',')]
-    figure_dir = os.path.join(pdb_dir, 'figures')
+    figure_dir = os.path.join(work_dir, 'landscape_figures')
     if not os.path.exists(figure_dir):
         os.makedirs(figure_dir)
     svg_path = os.path.join(figure_dir, 'landscape_' + template_name.rstrip('.pdb') + '.svg')
     eps_path = os.path.join(figure_dir, 'weblogo_' + template_name.rstrip('.pdb') + '.eps')
 
-    df_landscape, aligned_seq_df = function_landscape.run(label_file, pdb_dir, template_name, output_xlsx, label_pos_threshold, usalign_bin)
+    df_landscape, aligned_seq_df = function_landscape.run(work_dir, label_file, pdb_dir, template_name, output_xlsx, label_pos_threshold, usalign_bin)
     logger.info("Function landscape results successfully saved to {}".format(output_xlsx))
 
     plot_landscape(df_landscape, input_pos_list, template_name.rstrip('.pdb'), svg_path)

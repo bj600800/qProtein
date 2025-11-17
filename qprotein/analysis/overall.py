@@ -15,6 +15,8 @@ def save_feature(feature_file, feature_dict):
 	with open(feature_file, "w") as f:
 		f.write("Protein_name,Hydrophobic,Hbond,Salt_bridge,Disulfide\n")
 		for name, feature in feature_dict.items():
-			f.write(name+","+str(feature["hydrophobic"]["sum_area"])+","+str(feature["hbond"])
+			seq_length = feature['length']
+			sum_area = sum([float(cluster[0]) for cluster in list(feature["hydrophobic"].values())])
+			f.write(name+","+str(sum_area/seq_length)+","+str(feature["hbond"])
 			        +","+str(feature["saltbridge"])+","+str(feature["disulfide"])+"\n")
 	logger.info(f"Overall feature saved: {feature_file}")

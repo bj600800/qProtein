@@ -18,7 +18,7 @@ import plotly.graph_objects as go
 from pyvis.network import Network
 from sklearn.decomposition import PCA
 
-from qpacking.utils import logger
+from qprotein.utilities import logger
 
 logger = logger.setup_log(name=__name__)
 

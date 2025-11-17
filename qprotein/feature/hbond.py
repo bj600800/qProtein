@@ -10,16 +10,10 @@ from biotite.structure import hbond, angle, distance
 
 warnings.filterwarnings("ignore")
 
-
-# ------------------------------------------------------------------------------
-# Step 1 — Add hydrogens via pdb2pqr
-# ------------------------------------------------------------------------------
 def add_hydrogens(input_pdb):
     """
     Use pdb2pqr to protonate the structure and output a temporary pdb file.
     """
-
-    # Temporary files
     pqr_temp = tempfile.NamedTemporaryFile(delete=False)
     pqr_temp_path = pqr_temp.name
     pqr_temp.close()
@@ -28,9 +22,6 @@ def add_hydrogens(input_pdb):
     pdb_out_path = pdb_out_temp.name + ".pdb"
     pdb_out_temp.close()
 
-    # Using updated options:
-    # --nodebump: avoid error when structure has gaps or incomplete residues
-    # --protonate-all: ensure all H atoms are added
     pdb2pqr_cmd = [
         "pdb2pqr",
         "--nodebump",
@@ -43,20 +34,13 @@ def add_hydrogens(input_pdb):
         pqr_temp_path
     ]
 
-    # Execute
     subprocess.run(pdb2pqr_cmd, check=True)
 
-    # Remove the temporary pqr file
     os.remove(pqr_temp_path)
 
     return pdb_out_path
 
-
-# ------------------------------------------------------------------------------
-# Step 2 — Calculate H-bonds
-# Unified logic combining both old and new behavior
-# ------------------------------------------------------------------------------
-def calculate_hbonds(pdb_original, pdb_h, return_mode="frequency"):
+def calculate_hbonds(pdb_original, pdb_h, return_mode):
     """
     Unified hydrogen bond calculation:
 
@@ -64,32 +48,26 @@ def calculate_hbonds(pdb_original, pdb_h, return_mode="frequency"):
         "frequency" → return (#hbonds / length)
         "pairs"     → return list of donor/acceptor atom/residue pairs
     """
-
-    # Original structure (without hydrogens)
     stack = strucio.load_structure(pdb_original)
     residue_ids, _ = struc.get_residues(stack)
     length = len(residue_ids)
 
-    # Hydrogen-added structure
     stack_h = strucio.load_structure(pdb_h)
 
-    # Biotite hydrogen bond detection
     triplets_h = hbond(stack_h)  # triplet: (donor_idx, H_idx, acceptor_idx)
 
     if return_mode == "pairs":
 
         hbonds = []
-        # Format: {(atom_id, res_id), (atom_id, res_id)}
 
         for bond in triplets_h:
-            # donor / acceptor atoms in the H-added structure
             donor = bond[0]
             acceptor = bond[2]
 
             donor_res = int(stack_h[donor].res_id)
             acceptor_res = int(stack_h[acceptor].res_id)
 
-            donor_atom = donor + 1         # +1 to match user version
+            donor_atom = donor + 1
             acceptor_atom = acceptor + 1
 
             pair = {(donor_atom, donor_res), (acceptor_atom, acceptor_res)}
@@ -99,9 +77,6 @@ def calculate_hbonds(pdb_original, pdb_h, return_mode="frequency"):
 
         return hbonds
 
-    # --------------------------------------------------------------------------
-    # Old behavior: compute frequency using original atom indices
-    # --------------------------------------------------------------------------
     elif return_mode == "frequency":
         donor_acceptor = [(list(stack_h[bond].res_id[::2]),
                            list(stack_h[bond].atom_name[::2])) for bond in triplets_h]
@@ -127,17 +102,12 @@ def calculate_hbonds(pdb_original, pdb_h, return_mode="frequency"):
 
         zip_results = list(zip(degree, dist, triplets))
 
-        # frequency = #hbonds / protein_length
-        return len(zip_results) / length
+        return len(zip_results) / length, length
 
     else:
         raise ValueError("return_mode must be 'frequency' or 'pairs'")
 
-
-# ------------------------------------------------------------------------------
-# Step 3 — Unified high-level interface
-# ------------------------------------------------------------------------------
-def run(structure_path, return_mode="frequency"):
+def run(structure_path, return_mode):
     """
     High-level unified H-bond analysis function.
     Adds hydrogens, computes H-bonds, then removes temporary files.
@@ -147,7 +117,6 @@ def run(structure_path, return_mode="frequency"):
     try:
         result = calculate_hbonds(structure_path, pdb_h, return_mode=return_mode)
     finally:
-        # Always remove hydrogen-added temporary pdb
         if os.path.exists(pdb_h):
             os.remove(pdb_h)
 

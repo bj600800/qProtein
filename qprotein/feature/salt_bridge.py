@@ -49,18 +49,13 @@ def detect_disulfide_bonds(structure, distance=4):
     except:
         raise
 
-
-def run(atom_array):
-    salt_bridges = detect_disulfide_bonds(structure=atom_array)
-    return salt_bridges
-
 def run(atom_array, return_mode):
-	salt_bridges = detect_disulfide_bonds(structure=atom_array)
-	if return_mode == "pairs":
-		return salt_bridges
-	elif return_mode == "frequency":
-		length = len(set(atom_array.res_id))
-		return len(salt_bridges)/length
-	else:
-		raise ValueError("return_mode should be 'frequency' or 'pairs'")
+    salt_bridges = detect_disulfide_bonds(structure=atom_array)
+    if return_mode == "pairs":
+        return salt_bridges
+    elif return_mode == "frequency":
+        length = len(set(atom_array.res_id))
+        return len(salt_bridges)/length, length
+    else:
+        raise ValueError("return_mode should be 'frequency' or 'pairs'")
 
