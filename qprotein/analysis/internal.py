@@ -15,8 +15,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Alignment
 from tqdm import tqdm
 
-from qprotein.physical_chemistry import hbond, salt_bridge, disulfide_bond
-from qprotein.hydrocluster_analyzer import detect_cluster as hydrophobic
+from qprotein.feature import hydrophobic, hbond, salt_bridge, disulfide_bond
 from qprotein.utilities import logger
 
 logger = logger.setup_log(name=__name__)
@@ -30,11 +29,11 @@ def calc_interactions(structure_dir):
         structure = strucio.load_structure(structure_path)
         hydrophobic_ret = hydrophobic.run(structure)
         _interaction['hydrophobic'] = hydrophobic_ret
-        hbond_ret = hbond.run(structure_path)
+        hbond_ret = hbond.run(structure_path, 'pairs')
         _interaction['hbond'] = hbond_ret
-        salt_bridge_ret = salt_bridge.run(structure)
+        salt_bridge_ret = salt_bridge.run(structure, 'pairs')
         _interaction['salt_bridge'] = salt_bridge_ret
-        disulfide_bond_ret = disulfide_bond.run(structure)
+        disulfide_bond_ret = disulfide_bond.run(structure, 'pairs')
         _interaction['disulfide_bond'] = disulfide_bond_ret
         interactions[file_name] = _interaction
     return interactions
@@ -84,7 +83,6 @@ def save2xlsx(data_dict, xlsx_file):
                 sheet.cell(row=1, column=start_column, value=protein_name)
                 sheet.merge_cells(start_row=1, start_column=start_column, end_row=1, end_column=end_column)
                 for i, pair in enumerate(value):
-                    pair = list(pair)
                     sheet.cell(row=i + 2, column=start_column, value=pair[0][1])
                     sheet.cell(row=i + 2, column=end_column, value=pair[1][1])
 
@@ -150,3 +148,9 @@ def run(pdb_dir, xlsx_file, pml=False):
 
     if pml:
         generate_pml_file(data_dict, pml_dir)
+
+
+if __name__ == '__main__':
+    pdb_dir = r"/Users/douzhixin/Developer/qProtein/qProtein-main/test/structure"
+    xlsx_file = r"/Users/douzhixin/Developer/qProtein/qProtein-main/test/test.xlsx"
+    run(pdb_dir, xlsx_file, pml=True)

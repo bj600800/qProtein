@@ -211,7 +211,7 @@ def calculate_hbonds(pdb_original, pdb_h, return_mode="frequency"):
 # ------------------------------------------------------------------------------
 # Step 3 — Unified high-level interface
 # ------------------------------------------------------------------------------
-def analyze_hbond(structure_path, return_mode="frequency"):
+def run(structure_path, return_mode="frequency"):
     """
     High-level unified H-bond analysis function.
     Adds hydrogens, computes H-bonds, then removes temporary files.
@@ -227,21 +227,3 @@ def analyze_hbond(structure_path, return_mode="frequency"):
 
     return result
 
-
-# ------------------------------------------------------------------------------
-# Main test
-# ------------------------------------------------------------------------------
-if __name__ == '__main__':
-    pdb_file = r"/Users/douzhixin/Developer/qProtein2/Data/pdb/1yna.pdb"
-
-    print("=== H-bond pairs ===")
-    pairs = analyze_hbond(pdb_file, return_mode="pairs")
-    print(pairs)
-
-    print("\n=== H-bond frequency ===")
-    freq = analyze_hbond(pdb_file, return_mode="frequency")
-    print(freq)
-
-    # Example: print residue list
-    res_list = [str(group[1]) for pair in pairs for group in pair]
-    print("\nsele res " + "+".join(res_list))
