@@ -17,7 +17,7 @@ def fetch(entry_file):
 		id_list = [i.rstrip().split("\t")[-2] for i in f.readlines()]
 
 	Entrez.email = ""  # 请写上你自己的电子邮件地址以遵守NCBI的规则
-	Entrez.api_key = "ec940f6e9e78a1563b00cb2ecc18db028d08"  # 如果有NCBI API key请填入，这样可以提高访问速度和配额限制
+	Entrez.api_key = ""  # 如果有NCBI API key请填入，这样可以提高访问速度和配额限制
 	
 	sequences = []
 	batch_size = 50
