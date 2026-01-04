@@ -36,7 +36,7 @@ def _get_bfactor(pdb_string):
 def get_struct(uniprot_id):
 	headers = {
 		"User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.25 Safari/537.36 Core/1.70.3861.400 QQBrowser/10.7.4313.400",
-		"From": "bj600800@gmail.com"  # ALLWAYS TELLs WHO YOU ARE
+		"From": ""  # ALLWAYS TELLs WHO YOU ARE
 		}
 	
 	api_url = f"https://alphafold.ebi.ac.uk/files/AF-{uniprot_id}-F1-model_v6.pdb"
