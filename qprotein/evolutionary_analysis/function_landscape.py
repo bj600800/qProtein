@@ -188,7 +188,7 @@ def calc_conservation(landscape, total_protein_num, res_idx, output_xlsx, label_
 
     label_pos_thrshold = float(label_pos_thrshold)
     amino_acids = ['S', 'T', 'N', 'Q', 'R', 'K', 'H', 'E', 'D', 'P',
-                   'G', 'A', 'V', 'I', 'L', 'C', 'M', 'F', 'Y', 'W']
+                   'G', 'A', 'V', 'I', 'L', 'M', 'C', 'F', 'Y', 'W']
 
     df = pd.DataFrame(index=amino_acids, columns=res_idx)
 
