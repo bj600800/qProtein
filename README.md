@@ -35,6 +35,11 @@ pip install pdb2pqr
 pip install tqdm
 pip install numpy==1.23.5
 pip install biopython==1.83
+pip install colorlog
+pip install openpyxl
+pip install matplotlib
+pip install weblogo
+pip install pandas
 ```
 
 ## Additional requirements
