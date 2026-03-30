@@ -15,10 +15,6 @@ from pathlib import Path
 
 from tqdm import tqdm
 
-from qpacking.utils import logger
-
-logger = logger.setup_log(name=__name__)
-
 #### ARGUMENTS PARSER ####
 parser = argparse.ArgumentParser(description='domain segmentation')
 parser.add_argument('--id', required=True, help='output id file')

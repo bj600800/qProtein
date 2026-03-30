@@ -31,10 +31,7 @@ def draw_graph(G):
 
 
 def draw_digraph(G, protein_name):
-    # create pyvis direction network
     net = Network(notebook=True, directed=True, cdn_resources='in_line')
-
-    # add nodes and edges
     for node in G.nodes():
         color = 'blue'
         if 'sheet' in node:
@@ -47,8 +44,6 @@ def draw_digraph(G, protein_name):
 
     for edge in G.edges():
         net.add_edge(edge[0], edge[1])
-
-    # layout
     net.force_atlas_2based()
     net.show(protein_name)
 
@@ -63,7 +58,7 @@ def draw_graph_interactive(G, output_file):
     def get_color(degree, max_degree=max_degree):
         base_color = mcolors.hex2color("#0d47a1")
         min_color = [c + (1 - c) for c in base_color]
-        factor = degree / max_degree  # normalization
+        factor = degree / max_degree
         color = [(1 - factor) * min_c + factor * base_c for min_c, base_c in zip(min_color, base_color)]
         return mcolors.to_hex(color)
 
@@ -90,11 +85,9 @@ def show_hydrocluster_pymol(pdb_file, cluster_graphs):
         cmd.append(command)
     pymol_cmd = '; '.join(cmd)
 
-    # get Anaconda base environment path
     conda_base = r"/opt/anaconda3"
     pymol_path = os.path.join(conda_base, "bin")
 
-    # add base pymol dir to the current environmental variable path
     os.environ["PATH"] = pymol_path + os.pathsep + os.environ["PATH"]
 
     command_args = [pymol_bin, pdb_file, '-d', pymol_cmd]
@@ -118,42 +111,31 @@ def draw_ss_3D(points, group, ss_id, protein_name, fig_dir):
     res_ids = [res[0] for res in group]
     residues = [res[1] for res in group]
 
-    # move points to zero
     mean_coords = np.mean(points, axis=0)
     centered_coords = points - mean_coords
 
-    # using PCA to calculate the vector
-    pca = PCA(n_components=1)  # n_components=1 means line fitting
+    pca = PCA(n_components=1)  # n_components=1 for line fitting
     pca.fit(centered_coords)
 
-    # regression line direction
     line_direction = pca.components_[0]
 
     line_start = np.mean(centered_coords, axis=0)
 
-    # calculate the distance between the points and the start point of the line
     distances = np.linalg.norm(centered_coords - line_start, axis=1)
     max_distance_idx = np.argmax(distances)
 
-    # generate the two endpoints of the regression line
     t_min = -distances[max_distance_idx]
     t_max = distances[max_distance_idx]
 
-    # calculate the two endpoints of the regression line
     line_end_1 = line_start + t_min * line_direction
     line_end_2 = line_start + t_max * line_direction
 
-    # calculate the length of the regression line
     line_length = np.linalg.norm(line_end_2 - line_end_1)
 
-    # modify the direction vector to the length of the regression line
-    normalized_direction = line_direction / np.linalg.norm(line_direction)  # 单位化方向向量
-    direction_vector = normalized_direction * line_length / 2  # 调整方向向量的长度为回归直线的长度
-
-    # create a plotly figure
+    normalized_direction = line_direction / np.linalg.norm(line_direction)
+    direction_vector = normalized_direction * line_length / 2
     fig = go.Figure()
 
-    # draw
     fig.add_trace(go.Scatter3d(
         x=centered_coords[:, 0], y=centered_coords[:, 1], z=centered_coords[:, 2],
         mode='markers+text', marker=dict(size=5, color='blue'),
@@ -161,30 +143,26 @@ def draw_ss_3D(points, group, ss_id, protein_name, fig_dir):
         textposition='top center', name='Points'
     ))
 
-    # draw line
     fig.add_trace(go.Scatter3d(
         x=[line_end_1[0], line_end_2[0]], y=[line_end_1[1], line_end_2[1]], z=[line_end_1[2], line_end_2[2]],
         mode='lines', line=dict(color='red', width=2),
         name='Regression Line'
     ))
 
-    # draw direction
     fig.add_trace(go.Cone(
         x=[line_start[0]], y=[line_start[1]], z=[line_start[2]],
         u=[direction_vector[0]], v=[direction_vector[1]], w=[direction_vector[2]],
         colorscale='Viridis', showscale=False, sizemode="scaled", sizeref=0.2
     ))
 
-    # calc range of data
     axis_min = np.array([centered_coords[:, 0].min(), centered_coords[:, 1].min(), centered_coords[:, 2].min()]).min()
     axis_max = np.array([centered_coords[:, 0].max(), centered_coords[:, 1].max(), centered_coords[:, 2].max()]).max()
     x_min, y_min, z_min = axis_min, axis_min, axis_min
     x_max, y_max, z_max = axis_max, axis_max, axis_max
 
-    # layout
     margin = 1.1
 
-    # setup labels
+
     fig.update_layout(
         title=f'{protein_name}: {ss_id}',
         scene=dict(
@@ -229,11 +207,10 @@ def draw_ss_3D(points, group, ss_id, protein_name, fig_dir):
             ),
             aspectmode="cube"
         ),
-        margin=dict(l=10, r=10, b=10, t=40),  # 设置边距
+        margin=dict(l=10, r=10, b=10, t=40),  #边距
         title_x=0.5,
     )
 
-    # fig.show()
     fig_path = os.path.join(fig_dir, f'{protein_name}_{ss_id}.html')
     fig.write_html(fig_path)
     logger.info(f'Saved figure for {protein_name}_{ss_id} to dir: {fig_dir}')
@@ -243,7 +220,7 @@ def plot_vectors(vector1, vector2):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
 
-    ax.scatter(0, 0, 0, color="black", s=50)  # 原点
+    ax.scatter(0, 0, 0, color="black", s=50)
 
     ax.quiver(0, 0, 0, *vector1, color='r', label="Vector 1", linewidth=2)
     ax.quiver(0, 0, 0, *vector2, color='b', label="Vector 2", linewidth=2)
