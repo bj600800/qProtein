@@ -104,7 +104,7 @@ python run_qprotein.py --mode landscape --work_dir test --pre_pdb pdb_dir --labe
 ```
 
 ## Online web-server (for ID mode only with seq2struct)
-http://qprotein.sdu.edu.cn:8888
+https://qprotein.sdu.edu.cn:8888
 
 ## Schematic diagram of interaction algorithm
 <img src="https://github.com/bj600800/qProtein/blob/main/interaction_algorithm.png" alt="algorithm" width="650" height="600">
